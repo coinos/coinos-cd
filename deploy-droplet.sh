@@ -14,10 +14,6 @@ doctl compute droplet get $DROPLET_NAME --no-header
 
 IP_ADDRESS=`doctl compute droplet get $DROPLET_NAME --no-header --format PublicIPv4`
 
-echo "ssh keys list"
-doctl compute ssh-key list
-echo "copy fingerprint and paste to variables"
-
 ssh-keygen -R $IP_ADDRESS
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o ConnectionAttempts=60"
 
