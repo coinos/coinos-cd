@@ -9,18 +9,34 @@
 https://docs.digitalocean.com/reference/doctl/how-to/install/
 - token from: 
   https://cloud.digitalocean.com/account/api/tokens
-  Personal access tokens > paste command "doctl auth init"
 
-Then change please variables on deploy-droplet.sh
+and run the following command, and paste in your your token when it prompts: 
 
+`doctl auth init`
+
+#### run 
+`doctl compute ssh-key list`
+
+then paste the `FingerPrint` of your system as shown into the `SSH_KEYS` value in `deploy-droplet.sh` 
+
+Other options: 
 ```
 DROPLET_NAME="test"
 REGION_NAME="sfo3"
 SIZE_NAME="s-1vcpu-2gb"
 IMAGE_NAME="ubuntu-20-04-x64"
-SSH_KEYS="2d:fa:98:84:51:c1:d0:ed:08:d6:61:7d:a8:58:b4:7b"
+SSH_KEYS="(your fingerprint)"
 ```
-**SSH_KEYS** 
-For this value, use `doctl compute ssh-key list` and paste in your key 
 
-To create the new Droplet, run ./deploy-droplet.sh
+To create the new Droplet, run `deploy-droplet.sh`
+
+```bash
+./deploy-droplet.sh
+.....
+*****************************
+* Droplet is ready to use!
+* IP address: 143.244.187.249
+*****************************
+
+ssh root@143.244.187.249 #login to your new droplet
+```
