@@ -20,6 +20,8 @@ SSH_OPTIONS="-o StrictHostKeyChecking=no -o ConnectionAttempts=60"
 echo "Waiting 60 seconds for Droplet boot"
 sleep 60
 
+ssh $SSH_OPTIONS root@$IP_ADDRESS "echo Port 729 >> /etc/ssh/sshd_config && systemctl restart sshd"
+
 echo "*****************************"
 echo "* Droplet is ready to use!"
 echo "* IP address: $IP_ADDRESS"
