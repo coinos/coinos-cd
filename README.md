@@ -4,20 +4,33 @@
 
 ### Deploy Droplet
 
-#### setup 
+This is a procedure for deploying a new Digital Ocean Droplet.   You will perform these commands on your own system with help of DigitalOcean's API client. 
+
+#### setup
 - install DigitalOcean API client: 
 https://docs.digitalocean.com/reference/doctl/how-to/install/
-- token from: 
+- Create a 'Personal Access token' from: 
   https://cloud.digitalocean.com/account/api/tokens
+- Make sure your machine you will run this on has an SSH key added to Digital Ocean: 
+https://cloud.digitalocean.com/account/security
 
-and run the following command, and paste in your your token when it prompts: 
+
+#### run 
+
+first do the following command: 
 
 `doctl auth init`
 
-#### run 
+if prompted, paste a token from **Personal access tokens** section of your [cloud.digitalocean.com/account/api/tokens]
+
+then: 
+
 `doctl compute ssh-key list`
 
-then paste the `FingerPrint` of your system as shown into the `SSH_KEYS` value in `deploy-droplet.sh` 
+
+and copy the `FingerPrint` of the key that corresponds to your current machine.  
+
+Paste it into the `SSH_KEYS` value in `deploy-droplet.sh` 
 
 Other options: 
 ```
@@ -30,6 +43,8 @@ SSH_KEYS="(your fingerprint)"
 
 To create the new Droplet, run `deploy-droplet.sh`
 
+ex: 
+
 ```bash
 ./deploy-droplet.sh
 .....
@@ -38,5 +53,7 @@ To create the new Droplet, run `deploy-droplet.sh`
 * IP address: 143.244.187.249
 *****************************
 
-ssh root@143.244.187.249 #login to your new droplet
+ssh root@143.244.187.249 #login to your new droplet !
 ```
+
+[cloud.digitalocean.com/account/api/tokens]:https://cloud.digitalocean.com/account/api/tokens
