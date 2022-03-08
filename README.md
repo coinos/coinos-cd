@@ -11,7 +11,7 @@ This is a procedure for deploying a new Digital Ocean Droplet.   You will perfor
 https://docs.digitalocean.com/reference/doctl/how-to/install/
 - Create a 'Personal Access token' from: 
   https://cloud.digitalocean.com/account/api/tokens
-- Make sure your machine you will run this on has an SSH key added to Digital Ocean: 
+- Make sure the machine you will run this on has a public/private SSH keypair and that the public key is added to Digital Ocean: 
 https://cloud.digitalocean.com/account/security
 
 
@@ -39,7 +39,12 @@ REGION_NAME="sfo3"
 SIZE_NAME="s-1vcpu-2gb"
 IMAGE_NAME="ubuntu-20-04-x64"
 SSH_KEYS="(your fingerprint)"
+USER="node"
+PASSWORD="(set a secure password here)"
+SSH_PORT="729"
 ```
+
+Then make sure you have your machine's public key added to the file `pub-ssh-key` in this repo.  
 
 Finally, to create the new Droplet, run `deploy-droplet.sh`
 
@@ -47,13 +52,14 @@ ex:
 
 ```bash
 ./deploy-droplet.sh
-.....
-*****************************
-* Droplet is ready to use!
-* IP address: 143.244.187.249
-*****************************
-
-ssh root@143.244.187.249 #login to your new droplet !
+# .....
+# various output...
+# .....
+****************************************************************
+*  Droplet is rebooting & will be ready to login to momentarily!
+*  User, IP address and port: 
+*  node@143.244.187.249 -p 729
+****************************************************************
 ```
 
 [cloud.digitalocean.com/account/api/tokens]:https://cloud.digitalocean.com/account/api/tokens
