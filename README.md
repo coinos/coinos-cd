@@ -17,11 +17,11 @@ https://cloud.digitalocean.com/account/security
 
 #### run 
 
-first do the following command: 
+First do the following command on your machine: 
 
 `doctl auth init`
 
-if prompted, paste a token from **Personal access tokens** section of your [cloud.digitalocean.com/account/api/tokens]
+when/if prompted, paste a token from **Personal access tokens** section of your [cloud.digitalocean.com/account/api/tokens]
 
 then: 
 
@@ -32,7 +32,7 @@ and copy the `FingerPrint` of the key that corresponds to your current machine.
 
 Paste it into the `SSH_KEYS` value in `deploy-droplet.sh` 
 
-Other options: 
+and edit the values of the other options, such as the Droplet's name and region: 
 ```
 DROPLET_NAME="test"
 REGION_NAME="sfo3"
@@ -41,7 +41,7 @@ IMAGE_NAME="ubuntu-20-04-x64"
 SSH_KEYS="(your fingerprint)"
 ```
 
-To create the new Droplet, run `deploy-droplet.sh`
+Finally, to create the new Droplet, run `deploy-droplet.sh`
 
 ex: 
 
