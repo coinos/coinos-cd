@@ -62,4 +62,24 @@ ex:
 ****************************************************************
 ```
 
+#### assign to Project
+
+To assign the new Droplet to a Digital Ocean Project (ie- to share with your team) copy the Droplet's ID from the initial output of this script (under `## Droplet additional info:`) and edit `assign-droplet.sh` with that value 
+
+```
+DROPLET_ID="333333333"
+PROJECT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```
+  
+as well as your Project's ID which is available by doing: 
+  
+```bash
+doctl projects list
+```
+  
+and then run: 
+  
+`./assign-droplet.sh`
+
+
 [cloud.digitalocean.com/account/api/tokens]:https://cloud.digitalocean.com/account/api/tokens
