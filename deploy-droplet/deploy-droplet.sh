@@ -43,7 +43,7 @@ usermod -aG sudo $USER
 mkdir -p /home/$USER
 EOF
 
-scp pub-ssh-key root@$IP_ADDRESS:/home/$USER/pub-ssh-key
+scp $HOME/.ssh/id_rsa.pub root@$IP_ADDRESS:/home/$USER/pub-ssh-key
 
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 mkdir -p /home/$USER/.ssh/
