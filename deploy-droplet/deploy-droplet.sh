@@ -53,6 +53,14 @@ cat /home/$USER/pub-ssh-key >> /home/$USER/.ssh/authorized_keys
 chown -R $USER:$USER /home/$USER
 EOF
 
+
+echo "##################################################"
+echo "#### increase fs.inotify.max_user_watches ####"
+ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+EOF
+
+
 echo "##################################################"
 echo "#### Docker and docker-compose installation #### "
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
