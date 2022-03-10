@@ -78,4 +78,9 @@ and then run:
 `./assign-droplet.sh`
 
 
+#### notes
+
+[List of slugs] (names) for the various Droplet sizes
+
 [cloud.digitalocean.com/account/api/tokens]:https://cloud.digitalocean.com/account/api/tokens
+[List of slugs]:https://slugs.do-api.dev/
