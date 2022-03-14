@@ -93,11 +93,21 @@ systemctl restart sshd
 EOF
 
 echo "##################################################"
-echo "#### clone coinos-server ####"
+echo "#### clone coinos-server & install ####"
 ssh $SSH_OPTIONS $USER@$IP_ADDRESS -p $SSH_PORT <<EOF
 git clone https://github.com/coinos/coinos-server.git
 cd coinos-server
 ls
+cp -rf sampleconfig ./config
+cp .env.sample .env
+cp fx.sample fx
+docker network create net
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+sleep 10
+docker exec bitcoin bitcoin-cli -regtest -rpcuser=admin1 -rpcpassword=123 createwallet coinos
+docker cp ./db/schema.sql mariadb:/
+docker exec mariadb /bin/sh -c 'mysql -u root -ppassword < /schema.sql'
+
 echo "$PASSWORD" | sudo -S reboot now
 EOF
 
