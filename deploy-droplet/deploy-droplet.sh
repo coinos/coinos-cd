@@ -58,7 +58,7 @@ echo "##################################################"
 echo "#### increase fs.inotify.max_user_watches and havegd ####"
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
-apt install haveged
+apt install haveged -y
 EOF
 
 
