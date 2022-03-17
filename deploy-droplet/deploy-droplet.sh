@@ -2,7 +2,7 @@
 
 DROPLET_NAME="coinos"
 REGION_NAME="sfo3"
-SIZE_NAME="s-1vcpu-2gb"
+SIZE_NAME="s-4vcpu-8gb"
 IMAGE_NAME="ubuntu-20-04-x64"
 SSH_KEYS="xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
 USER="node"
