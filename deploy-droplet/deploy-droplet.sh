@@ -8,6 +8,7 @@ SSH_KEYS="xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
 USER="node"
 PASSWORD="xxxxxxxxx"
 SSH_PORT="729"
+HOST_NAME="xxx.coinos.xx"
 
 doctl compute droplet create --image $IMAGE_NAME --size $SIZE_NAME --region $REGION_NAME --ssh-keys $SSH_KEYS $DROPLET_NAME
 echo "##################################################"
@@ -95,19 +96,39 @@ EOF
 echo "##################################################"
 echo "#### clone coinos-server & install ####"
 ssh $SSH_OPTIONS $USER@$IP_ADDRESS -p $SSH_PORT <<EOF
+git config --global user.name "abc"
+git config --global user.email "abc@example.com"
+git clone https://github.com/coinos/coinos-ui.git
+cd coinos-ui
+git checkout -b stageUpdate
+git branch --set-upstream-to=origin/stageUpdate stageUpdate
+git pull
+docker build -t coinos-ui-staging:0.1.0 -f Dockerfile.stage .
+cd ..
 git clone https://github.com/coinos/coinos-server.git
 cd coinos-server
+git checkout -b stageUpdate
+git branch --set-upstream-to=origin/stageUpdate stageUpdate
+git pull
 ls
+docker build -t coinos-server-staging:0.0.1 -f staging.Dockerfile .
 cp -rf sampleconfig ./config
+cp config/nginx/default.conf.template config/nginx/default.conf
 cp .env.sample .env
 cp fx.sample fx
 docker network create net
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker run -v $(pwd):/app --entrypoint yarn asoltys/coinos-server
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.staging.yml up -d
 sleep 10
 docker exec bitcoin bitcoin-cli -regtest -rpcuser=admin1 -rpcpassword=123 createwallet coinos
 docker cp ./db/schema.sql mariadb:/
 docker exec mariadb /bin/sh -c 'mysql -u root -ppassword < /schema.sql'
-
+echo "$PASSWORD" | sudo base64 config/lnd/tls.cert | tr -d '\n' > config/lnd/cert.txt
+echo "HOST=$HOST_NAME" >> .env
+ocker-compose exec -T lnd 'printf "password\n\password\n\nn" | lncli create'
+echo "$PASSWORD" | sudo base64 config/lnd/data/chain/bitcoin/regtest/admin.macaroon | tr -d '\n' > config/lnd/macaroon.txt
+cd ../coinos-ui
+docker run --rm -v $(pwd)/dist:/dist coinos-ui-staging:0.1.0 bash -c 'cd app; pnpm stage; cp -rf dist/* /dist'
 echo "$PASSWORD" | sudo -S reboot now
 EOF
 
@@ -116,4 +137,8 @@ echo "***************************************************************"
 echo "* Droplet is rebooting & will be ready to login to momentarily!"
 echo "* User, IP address and port:"
 echo "* $USER@$IP_ADDRESS -p $SSH_PORT"
+echo "* https://$HOST_NAME"
 echo "***************************************************************"
+
+echo "## Droplet additional info: ##"
+doctl compute droplet get $DROPLET_NAME --no-header
