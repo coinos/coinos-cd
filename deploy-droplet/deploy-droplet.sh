@@ -1,14 +1,5 @@
 #!/bin/bash
-
-DROPLET_NAME="coinos"
-REGION_NAME="sfo3"
-SIZE_NAME="s-4vcpu-8gb"
-IMAGE_NAME="ubuntu-20-04-x64"
-SSH_KEYS="xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
-USER="node"
-PASSWORD="xxxxxxxxx"
-SSH_PORT="729"
-HOST_NAME="xxx.coinos.xx"
+set -o allexport; source .env; set +o allexport
 
 doctl compute droplet create --image $IMAGE_NAME --size $SIZE_NAME --region $REGION_NAME --ssh-keys $SSH_KEYS $DROPLET_NAME
 echo "##################################################"
@@ -100,15 +91,15 @@ git config --global user.name "abc"
 git config --global user.email "abc@example.com"
 git clone https://github.com/coinos/coinos-ui.git
 cd coinos-ui
-git checkout -b stageUpdate
-git branch --set-upstream-to=origin/stageUpdate stageUpdate
+git checkout -b $BRANCH_NAME
+git branch --set-upstream-to=origin/$BRANCH_NAME $BRANCH_NAME
 git pull
 docker build -t coinos-ui-staging:0.1.0 -f Dockerfile.stage .
 cd ..
 git clone https://github.com/coinos/coinos-server.git
 cd coinos-server
-git checkout -b stageUpdate
-git branch --set-upstream-to=origin/stageUpdate stageUpdate
+git checkout -b $BRANCH_NAME
+git branch --set-upstream-to=origin/$BRANCH_NAME $BRANCH_NAME
 git pull
 ls
 docker build -t coinos-server-staging:0.0.1 -f staging.Dockerfile .

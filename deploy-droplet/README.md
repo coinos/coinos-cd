@@ -11,7 +11,7 @@ https://docs.digitalocean.com/reference/doctl/how-to/install/
 https://cloud.digitalocean.com/account/security
 
 
-#### run 
+#### first run 
 
 First do the following command on your machine: 
 
@@ -28,7 +28,11 @@ and copy the `FingerPrint` of the key that corresponds to your current machine.
 
 Paste it into the `SSH_KEYS` value in `deploy-droplet.sh` 
 
-and edit the values of the other options, such as the Droplet's name and region: 
+then copy `.env.sample` to `.env`
+
+#### before each run 
+
+edit the values of your `.env` file which set the Droplet's name and region: 
 ```
 DROPLET_NAME="test"
 REGION_NAME="sfo3"
