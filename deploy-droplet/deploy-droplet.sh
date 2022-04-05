@@ -114,10 +114,8 @@ sleep 10
 docker exec bitcoin bitcoin-cli -regtest -rpcuser=admin1 -rpcpassword=123 createwallet coinos
 docker cp ./db/schema.sql mariadb:/
 docker exec mariadb /bin/sh -c 'mysql -u root -ppassword < /schema.sql'
-echo "$PASSWORD" | sudo base64 config/lnd/tls.cert | tr -d '\n' > config/lnd/cert.txt
+base64 config/lnd/tls.cert > config/lnd/tlscert.txt
 echo "HOST=$HOST_NAME" >> .env
-ocker-compose exec -T lnd 'printf "password\n\password\n\nn" | lncli create'
-echo "$PASSWORD" | sudo base64 config/lnd/data/chain/bitcoin/regtest/admin.macaroon | tr -d '\n' > config/lnd/macaroon.txt
 cd ../coinos-ui
 docker run --rm -v $(pwd)/dist:/dist coinos-ui-staging:0.1.0 bash -c 'cd app; pnpm stage; cp -rf dist/* /dist'
 echo "$PASSWORD" | sudo -S reboot now
