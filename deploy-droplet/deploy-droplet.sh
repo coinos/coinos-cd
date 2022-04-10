@@ -120,9 +120,22 @@ docker cp ./db/schema.sql mariadb:/
 docker exec mariadb /bin/sh -c 'mysql -u root -ppassword < /schema.sql'
 base64 config/lnd/tls.cert > config/lnd/tlscert.txt
 echo "HOST=$HOST_NAME" >> .env
+sleep 10
+docker exec lnd chmod +x /root/.lnd/lncli-create.exp
+docker exec lnd apk add expect
+docker exec lnd /root/.lnd/lncli-create.exp
+sleep 10
+cp config/lnd/lnd.conf.unlocked config/lnd/lnd.conf
+docker-compose down --remove-orphans
 cd ../coinos-ui
-docker run --rm -v $(pwd)/dist:/dist coinos-ui-staging:0.1.0 bash -c 'cd app; pnpm stage; cp -rf dist/* /dist'
-echo "$PASSWORD" | sudo -S reboot now
+docker run -v /home/node/coinos-ui/dist:/dist coinos-ui-staging:0.1.0 bash -c 'cd app; pnpm stage; cp -rf dist/* /dist'
+cd ../coinos-server
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.staging.yml up -d
+sleep 10
+echo "$PASSWORD" | sudo -S base64 config/lnd/data/chain/bitcoin/regtest/admin.macaroon > config/lnd/macaroon.txt
+docker restart lnd
+sleep 10
+docker restart app
 EOF
 
 echo " "
