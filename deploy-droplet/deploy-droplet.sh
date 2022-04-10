@@ -20,6 +20,7 @@ sleep 30
 
 echo "##################################################"
 echo "#### apt update/upgrade && install compiler ####"
+echo "##################################################"
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 apt update 
 apt upgrade -y
@@ -28,6 +29,7 @@ EOF
 
 echo "##################################################"
 echo "#### User creation... ####"
+echo "##################################################"
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 useradd -s /bin/bash -p "$PASSWORD" "$USER"
 echo "$USER:$PASSWORD" | chpasswd
@@ -48,6 +50,7 @@ EOF
 
 echo "##################################################"
 echo "#### increase fs.inotify.max_user_watches and havegd ####"
+echo "##################################################"
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 apt install haveged -y
@@ -56,6 +59,7 @@ EOF
 
 echo "##################################################"
 echo "#### Docker and docker-compose installation #### "
+echo "##################################################"
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 apt install apt-transport-https ca-certificates curl software-properties-common
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
@@ -69,6 +73,7 @@ EOF
 
 echo "##################################################"
 echo "#### sshd_config and ufw rules ####"
+echo "##################################################"
 ssh $SSH_OPTIONS root@$IP_ADDRESS <<EOF
 sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
 sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
@@ -86,6 +91,7 @@ EOF
 
 echo "##################################################"
 echo "#### clone coinos-server & install ####"
+echo "##################################################"
 ssh $SSH_OPTIONS $USER@$IP_ADDRESS -p $SSH_PORT <<EOF
 git config --global user.name "abc"
 git config --global user.email "abc@example.com"
@@ -101,14 +107,12 @@ cd coinos-server
 git checkout -b $BRANCH_NAME
 git branch --set-upstream-to=origin/$BRANCH_NAME $BRANCH_NAME
 git pull
-ls
 docker build -t coinos-server-staging:0.0.1 -f staging.Dockerfile .
 cp -rf sampleconfig ./config
 cp config/nginx/default.conf.template config/nginx/default.conf
 cp .env.sample .env
 cp fx.sample fx
 docker network create net
-docker run -v $(pwd):/app --entrypoint yarn asoltys/coinos-server
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.staging.yml up -d
 sleep 10
 docker exec bitcoin bitcoin-cli -regtest -rpcuser=admin1 -rpcpassword=123 createwallet coinos
@@ -123,7 +127,7 @@ EOF
 
 echo " "
 echo "***************************************************************"
-echo "* Droplet is rebooting & will be ready to login to momentarily!"
+echo "* Coinos is deployed & Droplet is ready to login!"
 echo "* User, IP address and port:"
 echo "* $USER@$IP_ADDRESS -p $SSH_PORT"
 echo "* https://$HOST_NAME"
