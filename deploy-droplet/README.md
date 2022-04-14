@@ -30,19 +30,27 @@ Paste it into the `SSH_KEYS` value in `deploy-droplet.sh`
 
 then copy `.env.sample` to `.env`
 
-#### before each run 
+#### to deploy a Droplet
 
-edit the values of your `.env` file which set the Droplet's name and region: 
+edit the values of your `.env` file which set the Droplet's name, region, host domain, subdomain and other values. 
 ```
-DROPLET_NAME="test"
+DROPLET_NAME="coinos-stager00"
+HOST_NAME="stager00.coinos.cloud"
+SUBDOMAIN="stager00"
+BRANCH_NAME="master"
 REGION_NAME="sfo3"
-SIZE_NAME="s-1vcpu-2gb"
+SIZE_NAME="s-4vcpu-8gb"
 IMAGE_NAME="ubuntu-20-04-x64"
-SSH_KEYS="(your fingerprint)"
+SSH_KEYS="xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
 USER="node"
-PASSWORD="(set a secure password here)"
+PASSWORD="XXXXXXXXXXXXXXXXXX"
 SSH_PORT="729"
+DROPLET_ID=""
+PROJECT_ID=""
+IP_ADDRESS=""
 ```
+
+(DROPLET_ID and IP_ADDRESS should be entered manually after Droplet creation if you will either destroy it or create a subdomain for it)
 
 Then make sure you have your machine's public key added to the file `pub-ssh-key` in this repo.  
 
@@ -62,7 +70,7 @@ ex:
 ****************************************************************
 ```
 
-#### assign to Project
+#### to assign the Droplet to a Project
 
 To assign the new Droplet to a Digital Ocean Project (ie- to share with your team) copy the Droplet's ID from the initial output of this script (under `## Droplet additional info:`) and edit `assign-droplet.sh` with that value 
 
@@ -70,7 +78,6 @@ To assign the new Droplet to a Digital Ocean Project (ie- to share with your tea
 DROPLET_ID="333333333"
 PROJECT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
-  
 as well as your Project's ID which is available by doing: 
   
 ```bash
@@ -80,6 +87,11 @@ doctl projects list
 and then run: 
   
 `./assign-droplet.sh`
+
+
+#### to put the Droplet at a subdomain
+
+Run `./create-subdomain.sh` to create a subdomain; ensuring the `SUBDOMAIN` you want and `IP_ADDRESS` of the Droplet you created are specified in your .env file (the latter requires updating `.env` with the IP address indicated in the output from the deploy-droplet script) 
 
 
 #### notes
