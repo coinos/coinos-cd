@@ -138,6 +138,8 @@ sleep 10
 docker restart app
 sleep 10
 docker restart app
+docker exec bitcoin bash -c 'cd config; ./fill-wallet.sh'
+sleep 5
 EOF
 
 echo " "
