@@ -136,6 +136,8 @@ echo "$PASSWORD" | sudo -S base64 config/lnd/data/chain/bitcoin/regtest/admin.ma
 docker restart lnd
 sleep 10
 docker restart app
+sleep 10
+docker restart app
 EOF
 
 echo " "
