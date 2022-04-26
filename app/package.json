@@ -5,6 +5,7 @@
   "dependencies": {
     "express": "^4.18.0",
     "jquery": "^3.6.0",
-    "node-html": "^1.0.0-beta.21"
+    "node-html": "^1.0.0-beta.21",
+    "uhtml": "^2.8.1"
   }
 }
