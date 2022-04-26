@@ -2,7 +2,7 @@
 
 ----
 
-Wrapper, launcher and admin UI for managing, testing & deploying Coinos
+WIP wrapper, launcher and admin UI for managing, testing & deploying Coinos
 
 Intended for more optimal CI/CD, intuitive developer experience & improved stability.
 
