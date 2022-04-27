@@ -27,8 +27,15 @@ exApp.get('/deploys', (req, res) => {
   res.send(deploys)
 })
 
-exApp.get('/deploy/:deployId', (req, res) => 
-  res.sendFile(process.cwd() + '/deploy.html')
+// Routes: 
+const pageRoutes = [
+  '/', 
+  '/create', 
+  '/deploy/:deployId', 
+]
+
+exApp.get(pageRoutes, (req, res) => 
+  res.sendFile(process.cwd() + '/index.html')
 )
 
 exApp.post('/deploy/:deployId', (req, res) => {

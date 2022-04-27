@@ -11,6 +11,7 @@ module.exports = () => {
 // Main URL routing: 
 if(window.location.pathname.search('deploy') === -1) return 
 
+// Initial deploy template: 
 $(document.head).append(/*html*/`
   <style type="text/tailwindcss">
     #DEPLOY h2 { @apply text-2xl; }
@@ -18,6 +19,16 @@ $(document.head).append(/*html*/`
   </style>
 `)
 
+$(document.body).prepend(/*html*/`
+  <div class="bg-black text-white p-4">
+  <a href="href="https://github.com/coinos"" class="px-1 mr-3">Code</a>
+  <a href="/" class="px-1 font-bold">Deploy</a>
+  </div>
+  <div id="DEPLOY" class="m-4"></div>
+`)
+
+
+//Fetch and render the details of this specific deploy: 
 const deployId = _s.strRightBack(window.location.pathname, '/')
 $.post('/deploy/' + deployId, res => {
   deploy = res
