@@ -1,7 +1,12 @@
 const $ = require('jquery')
 const {render, html} = require('uhtml')
+const day= require('dayjs')
 
-let deploying = false
+let deployed = deploying = false
+
+let deploy = {
+  SUBDOMAIN : 'stager' + day().format('MDYYHHmm')
+}
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -21,6 +26,56 @@ $(document.body).prepend(/*html*/`
     <div id="CONTENT" class="mt-12"></div>
   </div>
 `)
+
+// templates for #CONTENT div: 
+const notDeployingHtml = () => {
+  if(deploying || deployed) return ''
+  return html`
+  <a id="goBackBtn" href="/" class="inline-block mt-12 bg-gray-100 text-gray-700 p-3 border border-gray-300 mr-6 opacity-50
+  hover:border-gray-400
+  hover:opacity-100">< go back 
+  </a>
+
+  <a class="inline-block mt-12 bg-blue-600 text-white p-3 border border-gray-300 font-bold
+  hover:text-black
+  hover:bg-yellow-300 hover:border-yellow-100"
+    href="#deploy"> > Deploy 
+  </a>`
+}
+
+const deployingHtml = () => {
+  if(!deploying) return ''
+  return html`
+  <a href="#cancel" class="inline-block mt-12 bg-red-200 p-3 border border-gray-300 mr-6 opacity-50
+  hover:border-gray-400 hover:opacity-100">cancel 
+  </a>
+  <a class="inline-block mt-12 p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-300"
+    >deploying.... 
+  </a>
+  <div id="terminal" class="mt-5 bg-black h-32 p-3 text-gray-100">
+    > deploying new coinos instance...
+  </div>`
+}
+
+const deployBoxHtml = require('./deploy-box-html')
+
+const deployedHtml = () => {
+  if(!deployed) return ''
+  return html`
+  <a href="/" class="inline-block mt-12 bg-gray-100 text-gray-700 p-3 border border-gray-300 mr-6 opacity-80
+  hover:border-gray-400
+  hover:opacity-100">< return 
+  </a>
+  <a class="inline-block mt-12 p-3 border font-bold bg-green-300 text-black cursor-default border-green-500"
+    >deployed!
+  </a>  
+  <div id="terminal" class="mt-5 bg-black h-32 p-3 text-gray-100">
+    > deploying new coinos instance...<br>
+    > ok!
+  </div>
+  ${deployBoxHtml(deploy)}
+ `
+}
 
 const renderContent = () => {
   render(document.getElementById('CONTENT'), html`
@@ -47,15 +102,15 @@ const renderContent = () => {
 
     <div class="mt-4">
       <span class="text-gray-500">Subdomain</span>
-      <input class="ml-3 p-2 border border-gray-300 w-28" value="stager15" />
+      <input class="ml-3 p-2 border border-gray-300 w-40" value="${deploy.SUBDOMAIN}"
+      onchange=${e => deploy.SUBDOMAIN = e.currentTarget.value} />
     </div>
 
     <div class="mt-4">
       <span class="text-gray-500">Branch</span>
-      
       <select class="ml-3 p-2 bg-gray-100">
         <option>stageUpdate2</option>
-        <option>master</option>
+        <option disabled>master</option>
       </select>
     </div>
 
@@ -76,37 +131,27 @@ const renderContent = () => {
     </div>
   </div>
 
-
-  ${!deploying ? html`
-    <a id="goBackBtn" href="/" class="inline-block mt-12 bg-gray-100 text-gray-700 p-3 border border-gray-300 mr-6 opacity-50
-    hover:border-gray-400
-    hover:opacity-100">< go back 
-    </a>
-
-    <a class="inline-block mt-12 bg-blue-600 text-white p-3 border border-gray-300 font-bold
-    hover:text-black
-    hover:bg-yellow-300 hover:border-yellow-100"
-      href="#deploy"> > Deploy 
-    </a>
-  `
-  : html`
-    <a href="#cancel" class="inline-block mt-12 bg-red-200 p-3 border border-gray-300 mr-6 opacity-50
-    hover:border-gray-400 hover:opacity-100">cancel 
-    </a>
-    <a class="inline-block mt-12 p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-300"
-      >deploying.... 
-    </a>
-    <div id="terminal" class="mt-5 bg-black text-white h-32"></div>
-  `}
+  ${notDeployingHtml()}
+  ${deployingHtml()}
+  ${deployedHtml()}
+  
+  <div class="my-10"></div>
   `)
 }
 
 // In-page routing: 
 window.addEventListener('hashchange', e => {
   if(window.location.hash === '#deploy') {
-    console.log('deploy!')
     deploying = true 
     renderContent()
+    $.post('/create', deploy, res => {
+      if(!res || !res._id) throw 'no res'
+      log(res)
+      deploy = res 
+      deploying = false 
+      deployed = true
+      renderContent()
+    })
   } else if(window.location.hash === '#cancel') {
     deploying = false 
     renderContent()

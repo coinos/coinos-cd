@@ -1,9 +1,12 @@
 const log = console.log
 const express = require('express')
 const exApp = new express() 
+const bodyParser = require('body-parser')
 const fs = require('fs')
 const _ = require('underscore')
+const { v4: uuidv4 } = require('uuid')
 
+exApp.use(bodyParser.urlencoded({ extended: true }))
 exApp.use('/', express.static(process.cwd()))
 
 exApp.listen(8456, () => 
@@ -54,4 +57,52 @@ exApp.post('/deploy/:deployId/destroy', (req, res) => {
   deploys = _.without(deploys, deploy)
   //send back ok status: 
   res.sendStatus(200)
+})
+
+
+const delay = async (seconds) =>
+  await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
+
+
+exApp.post('/create', async (req, res) => {
+  log('/create')
+  let deploy = req.body
+
+  const id = uuidv4()
+  const fileName = `${deploy.SUBDOMAIN}_${id}.js`
+
+  //create a new deployment.... 
+  //metadata file: 
+  const modulePath = process.cwd() + `/data/${fileName}`
+  fs.writeFileSync(modulePath,
+`module.exports = {
+  _id : '${id}',
+  date : {
+    created : ${Date.now()},
+  }, 
+  host: 'Digital Ocean', 
+  DROPLET_NAME : "coinos-${deploy.SUBDOMAIN}",
+  SUBDOMAIN:"${deploy.SUBDOMAIN}", 
+  HOST_NAME:"${deploy.SUBDOMAIN}.coinos.cloud",
+  REGION_NAME:"sfo3",
+  SIZE_NAME:"s-4vcpu-8gb",
+  IMAGE_NAME:"ubuntu-20-04-x64", 
+  USER:"node", 
+  PASSWORD:"XKArt1Nf31LmqL5a", 
+  SSH_PORT:"729", 
+  DROPLET_ID:"297238562", 
+  BRANCH_NAME:"stageUpdate2", 
+}`,
+  'utf-8')
+
+  //todo: kickoff the actual deploy script..
+  await delay(3) //< (for now mock it)
+  
+  //'convert' the string back to JS by simply requiring it: 
+  deploy = require(modulePath)
+
+  getDeploys() //< refresh deploys in memory
+
+  //send back JS deploy data to client: 
+  res.send(deploy)
 })
