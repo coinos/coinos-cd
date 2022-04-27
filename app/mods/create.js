@@ -79,7 +79,7 @@ const deployedHtml = () => {
 
 const renderContent = () => {
   render(document.getElementById('CONTENT'), html`
-  <div class="${deploying ? 'opacity-40' : ''}">
+  <div class="${deploying || deployed ? 'opacity-40' : ''}">
     <div>
       <span class="text-gray-400">Type</span>
       <input class="ml-3 p-2 border border-gray-300 text-gray-400" disabled value="cloud (Digital Ocean Droplet)" />
@@ -134,7 +134,7 @@ const renderContent = () => {
   ${notDeployingHtml()}
   ${deployingHtml()}
   ${deployedHtml()}
-  
+
   <div class="my-10"></div>
   `)
 }
