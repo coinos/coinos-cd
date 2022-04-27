@@ -9,28 +9,25 @@ const { v4: uuidv4 } = require('uuid')
 const cmd = require('node-cmd')
 const path = require('path')
 
+//Database:
+const PouchDB = require('pouchdb')
+const _p = require('underpouch')
+const deploysDb = new PouchDB('./db')
+
+require('dotenv').config()
+const DIGITALOCEAN_SSH_KEYS = process.env.DIGITALOCEAN_SSH_KEYS
+if(!DIGITALOCEAN_SSH_KEYS || _.isEmpty(DIGITALOCEAN_SSH_KEYS)) throw 'missing DIGITALOCEAN_SSH_KEYS env var'
+
 exApp.use(bodyParser.urlencoded({ extended: true }))
 exApp.use('/', express.static(process.cwd()))
 
 exApp.listen(8456, () => 
   log('http://localhost:8456'))
 
-let deploys = [] 
-
-const getDeploys = () => {
-  //scoop up any existing deploys... 
-  const dirContents = fs.readdirSync(process.cwd() + '/data')
-
-  dirContents.forEach( deployFile => {
-    const deploy = require('./data/' + deployFile)
-    deploys.push(deploy)
-  })
-  deploys = _.unique(deploys)
-}
 
 exApp.get('/deploys', (req, res) => {
-  getDeploys()
-  res.send(deploys)
+  const deployDocs = await deploysDb.allDocs({ include_docs: true}).rows
+  res.send(deployDocs)
 })
 
 // Routes: 
@@ -45,20 +42,17 @@ exApp.get(pageRoutes, (req, res) =>
 )
 
 exApp.post('/deploy/:deployId', (req, res) => {
-  const deploy = _.findWhere(deploys, { _id : req.params.deployId })
-  if(!deploy) return res.sendStatus(500)
-  res.send(deploy)
+  _p.findWhere(deploysDb, { _id : req.params.deployId },
+    (err, deploy) => {
+      if(err) return res.sendStatus(500)
+      res.send(deploy)
+    })
 })
 
 exApp.post('/deploy/:deployId/destroy', (req, res) => {
-  const deploy = _.findWhere(deploys, { _id : req.params.deployId })
-  const fileName = `${deploy.SUBDOMAIN}_${deploy._id}.js`
-  log(`${process.cwd()}/data/${fileName}` )
-  //remove from fs: 
-  fs.unlinkSync(`${process.cwd()}/data/${fileName}`)
-  //remove from memory: 
-  deploys = _.without(deploys, deploy)
-  //send back ok status: 
+  const deploy = await deploysDb.get(req.params.deployId)
+  const removed = await deploysDb.remove(deploy)
+  log(removed)
   res.sendStatus(200)
 })
 
@@ -68,41 +62,29 @@ let deploying = false
 
 exApp.post('/create', async (req, res) => {
   log('/create')
-  deploy = req.body
   deploying = true 
   deployed = false
 
-  const id = uuidv4()
-  const fileName = `${deploy.SUBDOMAIN}_${id}.js`
+  deploy = {
+    date : {
+      created : Date.now() 
+    },
+    host: 'Digital Ocean',
+    DROPLET_NAME : `coinos-${req.body.SUBDOMAIN}`,
+    SUBDOMAIN:`${req.body.SUBDOMAIN}`, 
+    HOST_NAME:`${req.body.SUBDOMAIN}.coinos.cloud`,
+    REGION_NAME:"sfo3",
+    SIZE_NAME:"s-4vcpu-8gb",
+    IMAGE_NAME:"ubuntu-20-04-x64", 
+    USER:"node", 
+    PASSWORD:"XKArt1Nf31LmqL5a", 
+    SSH_PORT:"729", 
+    DROPLET_ID:"297238562", 
+    BRANCH_NAME:"stageUpdate2", 
+  }
 
   //create a new deployment.... 
-  //metadata file: 
-  const modulePath = process.cwd() + `/data/${fileName}`
-  fs.writeFileSync(modulePath,
-`module.exports = {
-  _id : '${id}',
-  date : {
-    created : ${Date.now()},
-  }, 
-  host: 'Digital Ocean', 
-  DROPLET_NAME : "coinos-${deploy.SUBDOMAIN}",
-  SUBDOMAIN:"${deploy.SUBDOMAIN}", 
-  HOST_NAME:"${deploy.SUBDOMAIN}.coinos.cloud",
-  REGION_NAME:"sfo3",
-  SIZE_NAME:"s-4vcpu-8gb",
-  IMAGE_NAME:"ubuntu-20-04-x64", 
-  USER:"node", 
-  PASSWORD:"XKArt1Nf31LmqL5a", 
-  SSH_PORT:"729", 
-  DROPLET_ID:"297238562", 
-  BRANCH_NAME:"stageUpdate2", 
-}`,
-  'utf-8')
-
-  //'convert' the string back to JS by simply requiring it: 
-  deploy = require(modulePath)
-
-  getDeploys() //< refresh deploys in memory
+  deploysDb.post(deploy)
 
   //send back JS deploy data to client: 
   deployDroplet(deploy, (err, data) => {
@@ -112,7 +94,6 @@ exApp.post('/create', async (req, res) => {
   })
 
   res.send({ deploy, deploying })
-
 })
 
 let terminalOutput = ''
@@ -135,7 +116,7 @@ PASSWORD="XKArt1Nf31LmqL5a"
 SSH_PORT="729"
 DROPLET_ID="297238562"
 BRANCH_NAME="stageUpdate2"
-SSH_KEYS="0d:56:a2:b5:f5:9d:2f:5a:e2:9b:28:f7:72:ae:0a:db"
+SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
 `
   fs.writeFileSync(envPath, envFile,'utf-8') 
 
@@ -159,8 +140,14 @@ SSH_KEYS="0d:56:a2:b5:f5:9d:2f:5a:e2:9b:28:f7:72:ae:0a:db"
           //update the .env file and run the subdomain script: 
           ipAddress = _s.strRightBack(dataLine, ':').trim()
           envFile = envFile + `IP_ADDRESS="${ipAddress}"`
+          deploy.IP_ADDRESS = ipAddress
           fs.writeFileSync(envPath, envFile,'utf-8')
           createSubdomain()
+          //update value in db: 
+          _p.replace(deploysDb, deploy, (err, res) => {
+            if(err) log(err) 
+            log(res) 
+          })
         }
         terminalOutput = terminalOutput + dataLine
       }
