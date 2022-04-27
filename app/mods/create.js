@@ -1,4 +1,7 @@
 const $ = require('jquery')
+const {render, html} = require('uhtml')
+
+let deploying = false
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -15,8 +18,14 @@ $(document.body).prepend(/*html*/`
         coinos deploys
         <span class="ml-2 font-light">create new</span>
     </div>
+    <div id="CONTENT" class="mt-12"></div>
+  </div>
+`)
 
-    <div class="mt-12">
+const renderContent = () => {
+  render(document.getElementById('CONTENT'), html`
+  <div class="${deploying ? 'opacity-40' : ''}">
+    <div>
       <span class="text-gray-400">Type</span>
       <input class="ml-3 p-2 border border-gray-300 text-gray-400" disabled value="cloud (Digital Ocean Droplet)" />
     </div>
@@ -48,9 +57,7 @@ $(document.body).prepend(/*html*/`
         <option>stageUpdate2</option>
         <option>master</option>
       </select>
-
     </div>
-
 
     <div class="mt-4">
       <span class="text-gray-400">BTC Network</span>
@@ -67,8 +74,10 @@ $(document.body).prepend(/*html*/`
       <span class="text-gray-400">Password</span>
       <input class="ml-3 p-2 border border-gray-300 text-gray-400 w-64" disabled value="XKArt1Nf31LmqL5a" />
     </div>
+  </div>
 
 
+  ${!deploying ? html`
     <a id="goBackBtn" href="/" class="inline-block mt-12 bg-gray-100 text-gray-700 p-3 border border-gray-300 mr-6 opacity-50
     hover:border-gray-400
     hover:opacity-100">< go back 
@@ -79,32 +88,32 @@ $(document.body).prepend(/*html*/`
     hover:bg-yellow-300 hover:border-yellow-100"
       href="#deploy"> > Deploy 
     </a>
-
-    <div id="terminal"
-    class="opacity-0 mt-5 bg-black text-white h-32">
-    </div>
-
-  </div>
-`)
+  `
+  : html`
+    <a href="#cancel" class="inline-block mt-12 bg-red-200 p-3 border border-gray-300 mr-6 opacity-50
+    hover:border-gray-400 hover:opacity-100">cancel 
+    </a>
+    <a class="inline-block mt-12 p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-300"
+      >deploying.... 
+    </a>
+    <div id="terminal" class="mt-5 bg-black text-white h-32"></div>
+  `}
+  `)
+}
 
 // In-page routing: 
 window.addEventListener('hashchange', e => {
   if(window.location.hash === '#deploy') {
     console.log('deploy!')
-    $('a[href="#deploy"]').text('deploying...')
-      .addClass('opacity-50 bg-yellow-300 text-black cursor-default border-yellow-300')
-      .removeClass('bg-blue-600 border-yellow-100')
-    
-    $('#terminal').removeClass('opacity-0')
-
-    $('#goBackBtn').text('cancel')
-    .removeClass('bg-gray-100')
-    .addClass('bg-red-200 text-white')
-    .attr('href', '#cancel')
+    deploying = true 
+    renderContent()
   } else if(window.location.hash === '#cancel') {
-    window.location.reload()
+    deploying = false 
+    renderContent()
   }
 })
+
+renderContent()
 
 // #### /module #### 
 }
