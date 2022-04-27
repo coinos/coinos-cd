@@ -11,15 +11,19 @@ exApp.listen(8456, () =>
 
 let deploys = [] 
 
-//scoop up any existing deploys... 
-const dirContents = fs.readdirSync(process.cwd() + '/data')
+const getDeploys = () => {
+  //scoop up any existing deploys... 
+  const dirContents = fs.readdirSync(process.cwd() + '/data')
 
-dirContents.forEach( deployFile => {
-  const deploy = require('./data/' + deployFile)
-  deploys.push(deploy)
-})
+  dirContents.forEach( deployFile => {
+    const deploy = require('./data/' + deployFile)
+    deploys.push(deploy)
+  })
+  deploys = _.unique(deploys)
+}
 
 exApp.get('/deploys', (req, res) => {
+  getDeploys()
   res.send(deploys)
 })
 

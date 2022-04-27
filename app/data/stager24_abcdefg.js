@@ -1,7 +1,12 @@
 module.exports = {
+  _id : 'abcdefg', 
+  date : {
+    created : 1651017719945, 
+  }, 
+  host: 'Digital Ocean', 
   DROPLET_NAME : "coinos-stager24",
   SUBDOMAIN:"stager24", 
-  HOST_NAME:"cd.coinos.cloud",
+  HOST_NAME:"stager24.coinos.cloud",
   REGION_NAME:"sfo3",
   SIZE_NAME:"s-4vcpu-8gb",
   IMAGE_NAME:"ubuntu-20-04-x64", 
