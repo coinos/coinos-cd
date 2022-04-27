@@ -2,7 +2,8 @@ const $ = require('jquery')
 const {render, html} = require('uhtml')
 const day= require('dayjs')
 
-let deployed = deploying = false
+let err = deployed = deploying = false
+let terminalOutput = '> deploying new coinos instance...'
 
 let deploy = {
   SUBDOMAIN : 'stager' + day().format('MDYYHHmm')
@@ -12,6 +13,12 @@ module.exports = () => {
 // #### Coinos CD module #### 
 
 if(window.location.pathname !== '/create') return
+
+$(document.head).append(/*html*/`
+  <style type="text/tailwindcss">
+    #terminal { @apply mt-5 bg-black p-3 text-gray-100 whitespace-pre-line font-mono; }
+  </style>`
+)
 
 $(document.body).prepend(/*html*/`
   <div class="bg-black text-white p-4">
@@ -52,8 +59,9 @@ const deployingHtml = () => {
   <a class="inline-block mt-12 p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-300"
     >deploying.... 
   </a>
-  <div id="terminal" class="mt-5 bg-black h-32 p-3 text-gray-100">
-    > deploying new coinos instance...
+  <div id="terminal">
+    > deploying new coinos instance...<br>
+    ${terminalOutput}
   </div>`
 }
 
@@ -69,12 +77,28 @@ const deployedHtml = () => {
   <a class="inline-block mt-12 p-3 border font-bold bg-green-300 text-black cursor-default border-green-500"
     >deployed!
   </a>  
-  <div id="terminal" class="mt-5 bg-black h-32 p-3 text-gray-100">
+  <div id="terminal">
     > deploying new coinos instance...<br>
+    ${terminalOutput}<br>
     > ok!
   </div>
   ${deployBoxHtml(deploy)}
  `
+}
+
+const errHtml = () => {
+  if(!err) return ''
+  return html`  
+  <a href="/" class="inline-block mt-12 bg-gray-100 text-gray-700 p-3 border border-gray-300 mr-6 opacity-80
+  hover:border-gray-400
+  hover:opacity-100">< return 
+  </a>
+  <a class="inline-block mt-12 p-3 border font-bold bg-red-300 text-black cursor-default border-red-500"
+    >error!
+  </a>  
+  <div id="terminal" class="mt-5 bg-black h-32 p-3 text-gray-100 whitespace-pre-line">
+    ${err}
+  </div>`
 }
 
 const renderContent = () => {
@@ -134,9 +158,36 @@ const renderContent = () => {
   ${notDeployingHtml()}
   ${deployingHtml()}
   ${deployedHtml()}
+  ${errHtml()}
 
   <div class="my-10"></div>
   `)
+}
+
+const delay = async (seconds) =>
+  await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
+
+const handleRes = async res => {
+  if(!res) return err ='no res'
+  if(!res.deploying && !res.deployed) return log('not deploying.')
+  if(res.deploying && !deploying ) { 
+    //^ update deploying state on page reloads: 
+    log('now deploying...')
+    deploying = true 
+  }
+  log(res)
+  terminalOutput = res.terminalOutput 
+  deploy = res.deploy 
+  renderContent()
+  // const termDiv = document.getElementById("terminal")
+  // termDiv.scrollTop = termDiv.scrollHeight
+  if(!res.deployed) {
+    await delay(6) //< wait 10 seconds then get another update:
+    return $.post('/create/update', handleRes)
+  }
+  deploying = false 
+  deployed = true
+  renderContent()
 }
 
 // In-page routing: 
@@ -144,14 +195,7 @@ window.addEventListener('hashchange', e => {
   if(window.location.hash === '#deploy') {
     deploying = true 
     renderContent()
-    $.post('/create', deploy, res => {
-      if(!res || !res._id) throw 'no res'
-      log(res)
-      deploy = res 
-      deploying = false 
-      deployed = true
-      renderContent()
-    })
+    $.post('/create', deploy, handleRes)
   } else if(window.location.hash === '#cancel') {
     deploying = false 
     renderContent()
@@ -159,6 +203,10 @@ window.addEventListener('hashchange', e => {
 })
 
 renderContent()
+
+
+// check on status, if any.. 
+$.post('/create/update', handleRes)
 
 // #### /module #### 
 }
