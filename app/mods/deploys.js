@@ -10,8 +10,8 @@ if(window.location.pathname !== '/') return
 // Initial index template: 
 $(document.body).prepend(/*html*/`
   <div class="bg-black text-white p-4">
-  <a href="href="https://github.com/coinos"" class="px-1 mr-3">Code</a>
-  <a href="index.html" class="px-1 font-bold">Deploy</a>
+  <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
+  <a class="px-1 font-bold">Deploy</a>
   </div>
   <div class="m-4">
   <h1 class="text-4xl font-bold">coinos deploys</h1>
