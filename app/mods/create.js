@@ -2,7 +2,7 @@ const $ = require('jquery')
 const {render, html} = require('uhtml')
 const day= require('dayjs')
 
-let err = deployed = deploying = false
+let err = deployed = deploying = canceled = false
 let terminalOutput = '> deploying new coinos instance...'
 
 let deploy = {
@@ -168,6 +168,7 @@ const delay = async (seconds) =>
   await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
 
 const handleRes = async res => {
+  if(canceled) return
   if(!res) return err ='no res'
   if(!res.deploying && !res.deployed) return log('not deploying.')
   if(res.deploying && !deploying ) { 
@@ -194,10 +195,12 @@ const handleRes = async res => {
 window.addEventListener('hashchange', e => {
   if(window.location.hash === '#deploy') {
     deploying = true 
+    canceled = false
     renderContent()
     $.post('/create', deploy, handleRes)
   } else if(window.location.hash === '#cancel') {
     deploying = false 
+    canceled = true
     renderContent()
   }
 })
