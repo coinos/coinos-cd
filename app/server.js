@@ -111,11 +111,20 @@ exApp.post('/create', async (req, res) => {
 
   //send back JS deploy data to client: 
   deployDroplet(deploy, async (err, data) => {
-    deployed = true
-    deploying = false
-    deploy.deploying = false 
-    saveDeploy() 
-    log('####### done, deployed! ###########')
+    log('####### done! ###########')
+    if(err) {
+      log('####### deploy err :/ ###########')
+      log(err)
+      deployError = true 
+      deploying = false
+      deploy.deploying = false 
+    } else {
+      log('####### deployed OK! ###########')
+      deployed = true
+      deploying = false
+      deploy.deploying = false 
+      saveDeploy()
+    }
     const logPost = await logsDb.post({
       deploy_id : deploy._id, 
       log : data 
@@ -162,8 +171,10 @@ SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
 
   const processRef = cmd.run('cd ../deploy-droplet; ./deploy-droplet.sh',  
   (err, data, stderr) => {
-    if(err) log(err) 
-    if(stderr) log(stderr)
+    if(err) {
+      log('$$$$$$$$$$$ err: $$$$$$$$$$$$$$$$' + err) 
+      return callback(true)
+    }
     callback(null,data)
   })
 
@@ -180,7 +191,11 @@ SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
           ipAddress = true 
           //update the .env file and run the subdomain script: 
           deploy.IP_ADDRESS = _s.strRightBack(dataLine, 'Droplet IP address:').trim()
-          //todo: sanity/check the string is actually an IP address and throw err if not;  Droplet limit for example can bump into this issue
+          //check the string is actually an IP address and throw err if not;  Droplet limit for example can bump into this issue
+          if(_.isEmpty(deploy.IP_ADDRESS)) {
+            ipAddress = false
+            return terminalOutput = `${terminalOutput}\n${dataLine}`
+          }
           log(`$$$$$$$$$$ update deploy.IP_ADDRESS to ${deploy.IP_ADDRESS} $$$$$$$$$$$`)
           envFile = envFile + `
 IP_ADDRESS="${deploy.IP_ADDRESS}"`
