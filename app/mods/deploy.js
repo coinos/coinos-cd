@@ -4,7 +4,7 @@ const _s = require('underscore.string')
 const {render, html} = require('uhtml')
 const is = require('./is')
 
-let deploy, deployURL, deployLogURL, error
+let deploy, deployURL, deployLogURL, testURL, isTesting, error
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -33,7 +33,7 @@ const errHtml = () => {
   if(!error) return 
   return html`<div class="mt-6 bg-red-200 p-3">There was an error.</div>`
 }
-
+ 
 const renderContent = () => 
   render(document.getElementById('DEPLOY'), html`
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
@@ -55,7 +55,19 @@ const renderContent = () =>
       </div>
       <div>
         <h2>tests</h2>
-        <p><span>(no tests yet)</span></p>
+        ${is(isTesting, () => html`
+          <a href="${testURL}" class="mt-3 mr-2 inline-block p-3 border font-bold opacity-90 bg-yellow-300 text-black border-yellow-500 hover:border-yellow-800"
+            >testing.... 
+          </a>`
+        , () => html`
+          <p><span>(no tests yet)</span></p>
+          <a class="inline-block mt-3 bg-blue-600 text-white p-3 border border-gray-300 font-bold
+          hover:text-black
+          hover:bg-yellow-300 hover:border-yellow-100"
+            href="${testURL}"> > Test 
+          </a>`
+        )}
+
       </div>
       <div>
         <h2>deployment</h2>
@@ -81,7 +93,17 @@ $.post('/deploy/' + deployId, res => {
   log(deploy)
   deployURL = `https://${deploy.HOST_NAME}`
   deployLogURL = `/deploy/${deploy._id}/log`
+  testURL = `/test/${deploy._id}`
   renderContent()
+  
+  $.post('/test/update', res => {
+    log(res)
+    if(res.testingId === deploy._id) {
+      isTesting = true
+      log(isTesting)
+    }
+    renderContent() 
+  })
 })
 
 // In-page routing: 

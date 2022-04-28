@@ -39,7 +39,8 @@ const pageRoutes = [
   '/', 
   '/create', 
   '/deploy/:deployId', 
-  '/deploy/:deployId/log'
+  '/deploy/:deployId/log',
+  '/test'
 ]
 
 exApp.get(pageRoutes, (req, res) => 
@@ -63,9 +64,9 @@ exApp.post('/deploy/:deployId/destroy', async (req, res) => {
     log(e) 
   }
 
-  const processRef = cmd.run('cd ../deploy-droplet; ./destroy-droplet.sh',  
+  cmd.run('cd ../deploy-droplet; ./destroy-droplet.sh',  
   (err, data, stderr) => {
-    if(err || stderr) {
+    if(err) {
       log('err: ' + err) 
       log('stderr:' + stderr )
       return res.sendStatus(500)
@@ -249,4 +250,79 @@ exApp.post('/deploy/:deployId/log', (req, res) => {
     if(err) { log(err); return res.sendStatus(500) }
     res.send(doc)
   })
+})
+
+let testing = false 
+let testResult
+let testOutput = ''
+let tested
+let testProcess
+let testingId 
+
+exApp.get('/test/:deployId', (req, res) => {
+  if(testing || tested ) {
+    return res.sendFile(process.cwd() + '/index.html')
+  }
+
+  _p.findWhere(deploysDb, { _id : req.params.deployId },
+  (err, deploy) => {
+    if(err) { throw err }
+    
+      testing = true 
+      testingId = deploy._id 
+      testProcess = cmd.run(`cd ../../coinos-tests; export BASE_URL=https://${deploy.SUBDOMAIN}.coinos.cloud/; npm run test-headless`,
+        (err, data, stderr) => {
+          log('### test complete! ### ')
+          testing = false
+          tested = true
+          testingId = null 
+          if(err) {
+            log('err: ' + err) 
+            log('stderr:' + stderr )
+            testProcess = null 
+            return
+          }
+          testOutput = data
+          if(_.isEmpty(data)) return res.sendStatus(500)
+          testResult = true
+          testProcess = null 
+        }
+      )
+      
+      let dataLine = ''
+      testProcess.stdout.on('data',
+        data => {
+          dataLine += data
+          if (dataLine[dataLine.length-1] == '\n') {
+            console.log(dataLine)
+            testOutput = `${testOutput}${dataLine}`
+            dataLine = ''
+          }
+        }
+      )
+    
+      res.sendFile(process.cwd() + '/index.html')
+  })
+})
+
+//send back the status of the currently running test: 
+exApp.post('/test/update', (req, res) => {
+  res.send({ testing, testOutput, testResult, testingId })
+})
+
+exApp.post('/test/:deployId/dismiss', (req, res)  => {
+  log('dismiss test')
+  testing = false 
+  tested = false 
+  testResult = null 
+  testOutput = ''
+  testingId = null 
+  if(testProcess) {
+    log('testProcess.pid: ')
+    log(testProcess.pid)
+    process.kill(testProcess.pid, 'SIGKILL')
+    //testProcess.kill('SIGKILL')
+    testProcess = null
+  }
+  res.sendStatus(200)
 })
