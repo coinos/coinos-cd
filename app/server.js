@@ -12,7 +12,8 @@ const path = require('path')
 //Database:
 const PouchDB = require('pouchdb')
 const _p = require('underpouch')
-const deploysDb = new PouchDB('./db')
+const deploysDb = new PouchDB('./db/deploys')
+const logsDb = new PouchDB('./db/logs')
 
 require('dotenv').config()
 const DIGITALOCEAN_SSH_KEYS = process.env.DIGITALOCEAN_SSH_KEYS
@@ -69,6 +70,7 @@ exApp.post('/create', async (req, res) => {
   deployed = false
 
   deploy = {
+    deploying, 
     date : {
       created : Date.now() 
     },
@@ -82,7 +84,6 @@ exApp.post('/create', async (req, res) => {
     USER:"node", 
     PASSWORD:"XKArt1Nf31LmqL5a", 
     SSH_PORT:"729", 
-    DROPLET_ID:"297238562", 
     BRANCH_NAME:"stageUpdate2", 
   }
 
@@ -93,10 +94,17 @@ exApp.post('/create', async (req, res) => {
   deploy._rev = postDeploy.rev
 
   //send back JS deploy data to client: 
-  deployDroplet(deploy, (err, data) => {
+  deployDroplet(deploy, async (err, data) => {
     deployed = true
     deploying = false
+    deploy.deploying = false 
+    saveDeploy() 
     log('####### done, deployed! ###########')
+    const logPost = await logsDb.post({
+      deploy_id : deploy._id, 
+      log : data 
+    })
+    log(logPost)
   })
 
   res.send({ deploy, deploying })
@@ -107,6 +115,17 @@ let deployed = false
 let envFile
 
 const envPath = path.resolve(process.cwd(), '../deploy-droplet/.env')
+
+const saveDeploy = () => 
+  _p.replace(deploysDb, deploy, (err, res) => {
+    if(err) { log(err) } 
+    else {
+      deploy._id = res._id 
+      deploy._rev = res._rev
+      log('updated deploy doc in DB ok')
+    }
+  })
+
 
 const deployDroplet = (deploy, callback) => {
   //write a new .env file: 
@@ -133,38 +152,39 @@ SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
   })
 
   let dataLine = ''
-
+  let ipAddress = dropletId = false 
   //listen to the terminal output: 
   processRef.stdout.on('data',
     data => {
-      let updateDb = false 
       dataLine += data
       if (dataLine[dataLine.length-1] == '\n') {
         console.log(dataLine)
         // parse for IP address:  
-        if(!deploy.IP_ADDRESS && dataLine.search('Droplet IP address') > -1) {
+        if(!ipAddress && dataLine.search('Droplet IP address') > -1) {
+          ipAddress = true 
           //update the .env file and run the subdomain script: 
-          deploy.IP_ADDRESS = _s.strRightBack(dataLine, ':').trim()
-          envFile = envFile + `IP_ADDRESS="${deploy.IP_ADDRESS}"`
+          deploy.IP_ADDRESS = _s.strRightBack(dataLine, 'Droplet IP address:').trim()
+          //todo: sanity/check the string is actually an IP address and throw err if not;  Droplet limit for example can bump into this issue
+          log(`$$$$$$$$$$ update deploy.IP_ADDRESS to ${deploy.IP_ADDRESS} $$$$$$$$$$$`)
+          envFile = envFile + `
+IP_ADDRESS="${deploy.IP_ADDRESS}"`
           fs.writeFileSync(envPath, envFile,'utf-8')
-          createSubdomain()
+          createSubdomain() 
           //update value in db: 
-          updateDb = true 
-        }
-        if(!deploy.DROPLET_ID && dataLine.search('Droplet ID') > -1) {
-          deploy.DROPLET_ID = _s.strRightBack(dataLine, ':').trim()
-          envFile = envFile + `DROPLET_ID="${deploy.DROPLET_ID}"`
-          fs.writeFileSync(envPath, envFile,'utf-8')
-          updateDb = true         
-        }
-        if(updateDb) {
-          _p.replace(deploysDb, deploy, (err, res) => {
-            if(err) { log(err) } 
-            else {
-              deploy._id = res._id 
-              deploy._rev = res._rev
-              log('updated deploy doc in DB ok')
-            }
+          saveDeploy()
+        } else if(!dropletId && dataLine.search('coinos-') > -1) {
+          dropletId = true
+          //Droplet ID is avail, but we will run this command to get a more precise value: 
+          cmd.run(`doctl compute droplet get ${deploy.DROPLET_NAME} --no-header`,
+          (err, doctlData, stderr) => {
+            if(err) log(err) 
+            if(stderr) log(stderr)
+            deploy.DROPLET_ID = _s.strLeft(doctlData, 'coinos-').trim()
+            log(`$$$$$$$$$$ update deploy.DROPLET_ID to ${deploy.DROPLET_ID} $$$$$$$$$$$`)
+            envFile = envFile + `
+DROPLET_ID="${deploy.DROPLET_ID}"`
+            fs.writeFileSync(envPath, envFile,'utf-8')
+            saveDeploy()
           })
         }
         terminalOutput = `${terminalOutput}\n${dataLine}`
@@ -177,7 +197,7 @@ const truncateMiddle = require('truncate-middle')
 
 exApp.post('/create/update', (req, res) => {
   res.send({ deploying, deploy, 
-    terminalOutput: truncateMiddle(terminalOutput, 0, 1200, '\n...\n'),
+    terminalOutput: truncateMiddle(terminalOutput, 0, 1200, '\n'),
     deployed })
 })
 
