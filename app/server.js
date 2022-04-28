@@ -104,7 +104,7 @@ exApp.post('/create', async (req, res) => {
 
 let terminalOutput = ''
 let deployed = false
-let envFile, ipAddress
+let envFile
 
 const envPath = path.resolve(process.cwd(), '../deploy-droplet/.env')
 
@@ -120,7 +120,6 @@ IMAGE_NAME="ubuntu-20-04-x64"
 USER="node"
 PASSWORD="XKArt1Nf31LmqL5a"
 SSH_PORT="729"
-DROPLET_ID="297238562"
 BRANCH_NAME="stageUpdate2"
 SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
 `
@@ -138,22 +137,32 @@ SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
   //listen to the terminal output: 
   processRef.stdout.on('data',
     data => {
+      let updateDb = false 
       dataLine += data
       if (dataLine[dataLine.length-1] == '\n') {
         console.log(dataLine)
         // parse for IP address:  
-        if(!ipAddress && dataLine.search('Droplet IP address') > -1) {
+        if(!deploy.IP_ADDRESS && dataLine.search('Droplet IP address') > -1) {
           //update the .env file and run the subdomain script: 
-          ipAddress = _s.strRightBack(dataLine, ':').trim()
-          log('ipAddress: ' + ipAddress)
-          envFile = envFile + `IP_ADDRESS="${ipAddress}"`
+          deploy.IP_ADDRESS = _s.strRightBack(dataLine, ':').trim()
+          envFile = envFile + `IP_ADDRESS="${deploy.IP_ADDRESS}"`
           fs.writeFileSync(envPath, envFile,'utf-8')
           createSubdomain()
-          deploy.IP_ADDRESS = ipAddress
           //update value in db: 
+          updateDb = true 
+        }
+        if(!deploy.DROPLET_ID && dataLine.search('Droplet ID') > -1) {
+          deploy.DROPLET_ID = _s.strRightBack(dataLine, ':').trim()
+          envFile = envFile + `DROPLET_ID="${deploy.DROPLET_ID}"`
+          fs.writeFileSync(envPath, envFile,'utf-8')
+          updateDb = true         
+        }
+        if(updateDb) {
           _p.replace(deploysDb, deploy, (err, res) => {
             if(err) { log(err) } 
             else {
+              deploy._id = res._id 
+              deploy._rev = res._rev
               log('updated deploy doc in DB ok')
             }
           })
@@ -164,11 +173,11 @@ SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
   )
 }
 
-const trimcate = require('trimcate')
+const truncateMiddle = require('truncate-middle')
 
 exApp.post('/create/update', (req, res) => {
   res.send({ deploying, deploy, 
-    terminalOutput: trimcate(terminalOutput,  { prelude: 36, postlude: 1000 }),
+    terminalOutput: truncateMiddle(terminalOutput, 0, 1200, '\n...\n'),
     deployed })
 })
 

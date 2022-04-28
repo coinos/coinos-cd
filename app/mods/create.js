@@ -16,7 +16,7 @@ if(window.location.pathname !== '/create') return
 
 $(document.head).append(/*html*/`
   <style type="text/tailwindcss">
-    #terminal { @apply mt-5 bg-black p-3 text-gray-100 whitespace-pre-line font-mono; }
+    #terminal { @apply mt-5 bg-black p-3 text-gray-100 whitespace-pre-line font-mono text-sm; }
   </style>`
 )
 
