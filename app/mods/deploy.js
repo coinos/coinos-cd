@@ -60,7 +60,8 @@ const renderContent = () =>
         <h2>deployment</h2>
         <div class="mt-4">
           ${is(deploy.deploying, 
-          () => html`🚧 <b class="text-orange-500">DEPLOYING</b>`, //else: 
+          () => html`🚧 <a class="font-bold text-orange-500"
+          href="/create">DEPLOYING</a>`, //else: 
           () => html`<b class="text-green-400">✓</b> ONLINE`)}
         </div>
         <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"

@@ -13,11 +13,10 @@ module.exports = deploy => {
       </div> 
       <div class="flex-auto"></div>
       <div>
-        ${is(deploy.deploying, () => html`
-        🚧 <b class="text-orange-500">DEPLOYING</b>`
-        , //else:  
-        () => html`
-        <b class="text-green-400">✓</b> ONLINE`)}
+        ${is(deploy.deploying, 
+          () => html`🚧 <a class="font-bold text-orange-500"
+          href="/create">DEPLOYING</a>`, //else: 
+          () => html`<b class="text-green-400">✓</b> ONLINE`)}
       </div>
     </div>
     <a class="mt-4 bg-green-100 p-3 border inline-block hover:bg-green-200"

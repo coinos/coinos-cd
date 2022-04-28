@@ -1,6 +1,7 @@
 const $ = require('jquery')
 const {render, html} = require('uhtml')
 const day= require('dayjs')
+const spinner = require('./spinner')
 
 let err = deployed = deploying = canceled = false
 let terminalOutput = '> deploying new coinos instance...'
@@ -17,7 +18,8 @@ if(window.location.pathname !== '/create') return
 $(document.head).append(/*html*/`
   <style type="text/tailwindcss">
     #terminal { @apply mt-5 bg-black p-3 text-gray-100 whitespace-pre-line font-mono text-sm; }
-  </style>`
+  </style>
+  ${spinner.style}`
 )
 
 $(document.body).prepend(/*html*/`
@@ -53,14 +55,17 @@ const notDeployingHtml = () => {
 const deployingHtml = () => {
   if(!deploying) return ''
   return html`
-  <a href="#cancel" class="inline-block mt-12 bg-red-200 p-3 border border-gray-300 mr-6 opacity-50
-  hover:border-gray-400 hover:opacity-100">cancel 
-  </a>
-  <a class="inline-block mt-12 p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-300"
-    >deploying.... 
-  </a>
+  <div class="flex items-center mt-12">
+    <a href="#cancel" class="inline-block bg-red-200 p-3 border border-gray-300 mr-6 opacity-50
+    hover:border-gray-400 hover:opacity-100">cancel 
+    </a>
+    <a class="mr-2 inline-block p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-300"
+      >deploying.... 
+    </a>
+    ${spinner.html('scale-50')}
+  </div>
   <div id="terminal">
-    > deploying new coinos instance...<br>
+    > deploying new coinos instance...
     ${terminalOutput}
   </div>`
 }
