@@ -25,9 +25,12 @@ exApp.listen(8456, () =>
   log('http://localhost:8456'))
 
 
-exApp.get('/deploys', (req, res) => {
-  const deployDocs = await deploysDb.allDocs({ include_docs: true}).rows
-  res.send(deployDocs)
+exApp.get('/deploys', async (req, res) => {
+  _p.all(deploysDb, (err, deploys) => {
+    if(err) { log(err); return res.send(500) }
+    log(deploys)
+    res.send(deploys)
+  })
 })
 
 // Routes: 
@@ -44,12 +47,12 @@ exApp.get(pageRoutes, (req, res) =>
 exApp.post('/deploy/:deployId', (req, res) => {
   _p.findWhere(deploysDb, { _id : req.params.deployId },
     (err, deploy) => {
-      if(err) return res.sendStatus(500)
+      if(err) { log(err); return res.sendStatus(500) }
       res.send(deploy)
     })
 })
 
-exApp.post('/deploy/:deployId/destroy', (req, res) => {
+exApp.post('/deploy/:deployId/destroy', async (req, res) => {
   const deploy = await deploysDb.get(req.params.deployId)
   const removed = await deploysDb.remove(deploy)
   log(removed)
@@ -84,7 +87,10 @@ exApp.post('/create', async (req, res) => {
   }
 
   //create a new deployment.... 
-  deploysDb.post(deploy)
+  const postDeploy = await deploysDb.post(deploy)
+  log(postDeploy)
+  deploy._id = postDeploy.id
+  deploy._rev = postDeploy.rev
 
   //send back JS deploy data to client: 
   deployDroplet(deploy, (err, data) => {
@@ -139,17 +145,20 @@ SSH_KEYS="${process.env.DIGITALOCEAN_SSH_KEYS}"
         if(!ipAddress && dataLine.search('Droplet IP address') > -1) {
           //update the .env file and run the subdomain script: 
           ipAddress = _s.strRightBack(dataLine, ':').trim()
+          log('ipAddress: ' + ipAddress)
           envFile = envFile + `IP_ADDRESS="${ipAddress}"`
-          deploy.IP_ADDRESS = ipAddress
           fs.writeFileSync(envPath, envFile,'utf-8')
           createSubdomain()
+          deploy.IP_ADDRESS = ipAddress
           //update value in db: 
           _p.replace(deploysDb, deploy, (err, res) => {
-            if(err) log(err) 
-            log(res) 
+            if(err) { log(err) } 
+            else {
+              log('updated deploy doc in DB ok')
+            }
           })
         }
-        terminalOutput = terminalOutput + dataLine
+        terminalOutput = `${terminalOutput}\n${dataLine}`
       }
     }
   )
