@@ -39,6 +39,7 @@ const pageRoutes = [
   '/', 
   '/create', 
   '/deploy/:deployId', 
+  '/deploy/:deployId/log'
 ]
 
 exApp.get(pageRoutes, (req, res) => 
@@ -240,3 +241,12 @@ const createSubdomain = () => {
     log(data)
   })
 }
+
+exApp.post('/deploy/:deployId/log', (req, res) => {
+  _p.findWhere(logsDb, {
+    deploy_id : req.params.deployId
+  }, (err, doc) => {
+    if(err) { log(err); return res.sendStatus(500) }
+    res.send(doc)
+  })
+})

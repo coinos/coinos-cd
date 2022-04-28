@@ -4,13 +4,14 @@ const _s = require('underscore.string')
 const {render, html} = require('uhtml')
 const is = require('./is')
 
-let deploy, deployURL, error
+let deploy, deployURL, deployLogURL, error
 
 module.exports = () => {
 // #### Coinos CD module #### 
 
 // Main URL routing: 
 if(window.location.pathname.search('deploy') === -1) return 
+if(window.location.pathname.search('log') > -1) return 
 
 // Initial deploy template: 
 $(document.head).append(/*html*/`
@@ -22,8 +23,8 @@ $(document.head).append(/*html*/`
 
 $(document.body).prepend(/*html*/`
   <div class="bg-black text-white p-4">
-  <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-  <a href="/" class="px-1 font-bold">Deploy</a>
+    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
+    <a href="/" class="px-1 font-bold">Deploy</a>
   </div>
   <div id="DEPLOY" class="m-4"></div>
 `)
@@ -64,6 +65,7 @@ const renderContent = () =>
           href="/create">DEPLOYING</a>`, //else: 
           () => html`<b class="text-green-400">✓</b> ONLINE`)}
         </div>
+        <a href="${deployLogURL}" class="block text-blue-300 mt-2">> initial deploy log</a>
         <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
         href="#destroy">
           destroy
@@ -78,6 +80,7 @@ $.post('/deploy/' + deployId, res => {
   deploy = res
   log(deploy)
   deployURL = `https://${deploy.HOST_NAME}`
+  deployLogURL = `/deploy/${deploy._id}/log`
   renderContent()
 })
 
