@@ -4,7 +4,7 @@ const _s = require('underscore.string')
 const {render, html} = require('uhtml')
 const is = require('./is')
 
-let deploy
+let deploy, deployURL, error
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -28,16 +28,16 @@ $(document.body).prepend(/*html*/`
   <div id="DEPLOY" class="m-4"></div>
 `)
 
+const errHtml = () => {
+  if(!error) return 
+  return html`<div class="mt-6 bg-red-200 p-3">There was an error.</div>`
+}
 
-//Fetch and render the details of this specific deploy: 
-const deployId = _s.strRightBack(window.location.pathname, '/')
-$.post('/deploy/' + deployId, res => {
-  deploy = res
-  log(deploy)
-  let deployURL = `https://${deploy.HOST_NAME}`
+const renderContent = () => 
   render(document.getElementById('DEPLOY'), html`
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>
+    ${errHtml()}
     <div class="grid grid-cols-3 mt-10">
       <div>
         <h2>details</h2>
@@ -70,13 +70,23 @@ $.post('/deploy/' + deployId, res => {
       </div>
     </div>
   `)
+
+//Fetch and render the details of this specific deploy: 
+const deployId = _s.strRightBack(window.location.pathname, '/')
+$.post('/deploy/' + deployId, res => {
+  deploy = res
+  log(deploy)
+  deployURL = `https://${deploy.HOST_NAME}`
+  renderContent()
 })
 
 // In-page routing: 
 window.addEventListener('hashchange', e => {
   if(window.location.hash === '#destroy') { 
+    const confirmed = confirm('destroy this instance?')
+    if(!confirmed) return window.location.hash = ''
     log('destroy a deploy!')
-    $.post(`/deploy/${deploy._id}/destroy`, (res, status) => {
+    $.post(`/deploy/${deploy._id}/destroy`, res => {
       if(res !== 'OK') return alert('problem')
       render(document.getElementById('DEPLOY'), html`
         <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
@@ -87,6 +97,10 @@ window.addEventListener('hashchange', e => {
         hover:opacity-100">< return 
         </a>
       `)
+    }).catch(res => {
+      log(res)
+      error = true
+      renderContent()
     })
   }
 })

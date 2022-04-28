@@ -54,10 +54,26 @@ exApp.post('/deploy/:deployId', (req, res) => {
 })
 
 exApp.post('/deploy/:deployId/destroy', async (req, res) => {
-  const deploy = await deploysDb.get(req.params.deployId)
-  const removed = await deploysDb.remove(deploy)
-  log(removed)
-  res.sendStatus(200)
+  try {
+    const deploy = await deploysDb.get(req.params.deployId)
+    const removed = await deploysDb.remove(deploy)
+    log(removed)
+  } catch (e) {
+    log(e) 
+  }
+
+  const processRef = cmd.run('cd ../deploy-droplet; ./destroy-droplet.sh',  
+  (err, data, stderr) => {
+    if(err || stderr) {
+      log('err: ' + err) 
+      log('stderr:' + stderr )
+      return res.sendStatus(500)
+    }
+    if(_.isEmpty(data)) return res.sendStatus(500)
+    log(data)
+    res.sendStatus(200)
+  })
+
 })
 
 
