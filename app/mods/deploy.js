@@ -2,6 +2,7 @@ const log = console.log
 const $ = require('jquery')
 const _s = require('underscore.string')
 const {render, html} = require('uhtml')
+const is = require('./is')
 
 let deploy
 
@@ -32,6 +33,7 @@ $(document.body).prepend(/*html*/`
 const deployId = _s.strRightBack(window.location.pathname, '/')
 $.post('/deploy/' + deployId, res => {
   deploy = res
+  log(deploy)
   let deployURL = `https://${deploy.HOST_NAME}`
   render(document.getElementById('DEPLOY'), html`
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
@@ -56,6 +58,11 @@ $.post('/deploy/' + deployId, res => {
       </div>
       <div>
         <h2>deployment</h2>
+        <div class="mt-4">
+          ${is(deploy.deploying, 
+          () => html`🚧 <b class="text-orange-500">DEPLOYING</b>`, //else: 
+          () => html`<b class="text-green-400">✓</b> ONLINE`)}
+        </div>
         <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
         href="#destroy">
           destroy
