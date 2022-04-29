@@ -31,10 +31,7 @@ const deployBoxHtml = require('./deploy-box-html')
 $.get('/deploys', deploys => {
   $.post('/test/update', testStatus => {
     render(document.getElementById('DEPLOYS'), html`
-      ${deploys.map( deploy => {
-        deploy.isTesting = testStatus.testingId === deploy._id
-        return deployBoxHtml(deploy) }
-      )}`
+      ${deploys.map( deploy => deployBoxHtml(deploy) )}`
     )
   })
 })

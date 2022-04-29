@@ -35,6 +35,10 @@ exApp.get('/deploys', async (req, res) => {
   _p.all(deploysDb, (err, deploys) => {
     if(err) { log(err); return res.send(500) }
     log(deploys)
+    deploys = _.map(deploys, deploy => {
+      if(deploy._id === testingId) deploy.isTesting = true 
+      return deploy
+    })
     res.send(deploys)
   })
 })
