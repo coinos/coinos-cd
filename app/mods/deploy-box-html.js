@@ -1,17 +1,25 @@
 const {html} = require('uhtml')
 const is = require('./is')
+const dayjs = require('dayjs')
+const relativeTime = require('dayjs/plugin/relativeTime')
+dayjs.extend(relativeTime)
 
 module.exports = deploy => {
   let deployURL = `https://${deploy.HOST_NAME}`
   let deployURLinternal = `/deploy/${deploy._id}`
   let testURL = `/test/${deploy._id}`
+  let testedAgo, testResultUrl
+  if(deploy.lastTest) {
+    testedAgo = dayjs(deploy.lastTest.date).fromNow()
+    testResultUrl = `/test/result/${deploy.lastTest.test_id}`
+  }
   log(deploy)
   return html`
   <div class="mt-10 border p-3 max-w-3xl">
     <div class="flex">
-      <div class="text-2xl">
+      <a href="${deployURLinternal}" class="text-2xl hover:text-blue-700">
         <b class="">${deploy.SUBDOMAIN}</b> - regtest cloud
-      </div> 
+      </a> 
       <div class="flex-auto"></div>
       <div class="text-right">
         ${is(deploy.deploying, 
@@ -24,6 +32,11 @@ module.exports = deploy => {
           href="${deploy.testURL}">TESTING</span>
         </a>`)
         }
+     
+        ${is(deploy.lastTest, () => html`
+          <a href="${testResultUrl}" class="block text-blue-400">tested 
+          ${testedAgo}</a>
+        `)}
       </div>
     </div>
     <a class="mt-4 bg-green-100 p-3 border inline-block hover:bg-green-200"

@@ -153,15 +153,19 @@ let envFile
 
 const envPath = path.resolve(process.cwd(), '../deploy-droplet/.env')
 
-const saveDeploy = () => 
-  _p.replace(deploysDb, deploy, (err, res) => {
+const saveDeploy = theDeploy => {
+  //use global if no deploy supplied: 
+  if(!theDeploy) theDeploy = deploy
+  if(!theDeploy) throw 'no deploy to save'
+  _p.replace(deploysDb, theDeploy, (err, res) => {
     if(err) { log(err) } 
     else {
-      deploy._id = res._id 
-      deploy._rev = res._rev
+      theDeploy._id = res._id 
+      theDeploy._rev = res._rev
       log('updated deploy doc in DB ok')
     }
   })
+}
 
 
 const deployDroplet = (deploy, callback) => {
@@ -294,12 +298,18 @@ exApp.get('/test/:deployId', (req, res) => {
           testResult = true
           testProcess = null 
           log('post test result to db...')
+          const now = Date.now()
           const dbPost = await testsDb.post({
             deploy_id : deploy._id, 
             result : data,
-            date : Date.now()
+            date : now
           })
           log(dbPost)
+          deploy.lastTest = {
+            date : now,
+            test_id : dbPost.id 
+          }
+          saveDeploy(deploy) 
         }
       )
       
