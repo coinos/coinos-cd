@@ -7,11 +7,12 @@ const spinner = require('./spinner')
 const delay = async (seconds) =>
   await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
 
-  
+
 module.exports = () => {
 // #### Coinos CD module #### 
 
 if(window.location.pathname.search('test') === -1) return 
+if(window.location.pathname.search('result') > -1) return 
 
 log('this is a coinos test')
 
@@ -32,10 +33,10 @@ const renderContent = () =>
     <a href="/" class="px-1 font-bold">Test</a>
 
   </div>
-  <div class="m-4">
+  <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>  
-  </div>
+  </a>
   ${testingHtml()}
   ${testedHtml()}
   <div id="TEST" class="mt-12 TERMINAL m-4 !pb-8"></div>
@@ -78,6 +79,7 @@ $(document.head).append(/*html*/`
 
 $.post(`/deploy/${deployId}`, theDeploy => {
   deploy = theDeploy
+  deployUrl = `/deploy/${deploy._id}`
   renderContent()
 })
 

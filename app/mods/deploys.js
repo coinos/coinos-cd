@@ -29,9 +29,14 @@ const deployBoxHtml = require('./deploy-box-html')
 
 // Fetch & render deploy data: 
 $.get('/deploys', deploys => {
-  render(document.getElementById('DEPLOYS'), html`
-    ${deploys.map( deploy => deployBoxHtml(deploy) )}`
-  )
+  $.post('/test/update', testStatus => {
+    render(document.getElementById('DEPLOYS'), html`
+      ${deploys.map( deploy => {
+        deploy.isTesting = testStatus.testingId === deploy._id
+        return deployBoxHtml(deploy) }
+      )}`
+    )
+  })
 })
 
 // #### /module #### 

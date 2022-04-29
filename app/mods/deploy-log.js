@@ -6,8 +6,6 @@ const {render, html} = require('uhtml')
 module.exports = () => {
 // #### Coinos CD module #### 
 
-log(window.location.pathname)
-
 // Main URL routing: 
 if(window.location.pathname.search('deploy') === -1) return 
 if(window.location.pathname.search('log') === -1) return 
@@ -25,15 +23,17 @@ deployId = _s.strLeftBack(deployId, '/log')
 log(deployId)
 
 $.post(`/deploy/${deployId}`, deploy => {
+  const deployUrl = `/deploy/${deploy._id}`
   render(document.body, html`
   <div class="bg-black text-white p-4">
     <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
     <a href="/" class="px-1 font-bold">Deploy</a>
   </div>
-  <div class="m-4">
+  <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>  
-  </div>
+  </a>
+  <p class="ml-4">Initial deployment log</p>
   <div id="LOG" class="mt-12 TERMINAL m-4"></div>
   `)
 

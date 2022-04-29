@@ -4,7 +4,8 @@ const _s = require('underscore.string')
 const {render, html} = require('uhtml')
 const is = require('./is')
 
-let deploy, deployURL, deployLogURL, testURL, isTesting, error
+let deploy, deployWebURL, deployLogURL, testURL, isTesting, error
+let testHistory = []
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -33,41 +34,49 @@ const errHtml = () => {
   if(!error) return 
   return html`<div class="mt-6 bg-red-200 p-3">There was an error.</div>`
 }
- 
+
+const historyHtml = () => html`
+  ${testHistory.map(test => {
+    const testResultUrl = `/test/result/${test._id}`
+    return html`
+      <a class="block text-blue-400 hover:text-blue-600" 
+      href="${testResultUrl}">> ${test.ago}</a>`
+    }
+  )}
+`
 const renderContent = () => 
   render(document.getElementById('DEPLOY'), html`
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>
     ${errHtml()}
-    <div class="grid grid-cols-3 mt-10">
+    <a class="block my-6 text-blue-400 hover:text-blue-500"
+      href="${deployWebURL}" target="_blank">
+      ${deployWebURL} 🌎
+    </a>
+    <div class="grid grid-cols-3 gap-4">
       <div>
         <h2>details</h2>
-        <p>
-          <a class="text-blue-400"
-          href="${deployURL}" target="_blank">
-          ${deployURL}
-          </a>
-        </p>
         <p><span>Branch:</span> ${deploy.BRANCH_NAME}</p>
         <p><span>Host:</span> ${deploy.host}</p>
-        <p><span>IP:</span> ${deploy.IP_ADDRESS}</p>
         <p><span>Droplet ID:</span> ${deploy.DROPLET_ID}</p>
+        <p><span>IP:</span> ${deploy.IP_ADDRESS}</p>
       </div>
       <div>
         <h2>tests</h2>
+        ${is(history.length, historyHtml, 
+          () => html`<p><span>(no tests yet)</span></p>`
+        )}
+
         ${is(isTesting, () => html`
           <a href="${testURL}" class="mt-3 mr-2 inline-block p-3 border font-bold opacity-90 bg-yellow-300 text-black border-yellow-500 hover:border-yellow-800"
             >testing.... 
-          </a>`
-        , () => html`
-          <p><span>(no tests yet)</span></p>
+          </a>`, 
+          () => html`
           <a class="inline-block mt-3 bg-blue-600 text-white p-3 border border-gray-300 font-bold
-          hover:text-black
-          hover:bg-yellow-300 hover:border-yellow-100"
+            hover:text-black hover:bg-yellow-300 hover:border-yellow-100"
             href="${testURL}"> > Test 
           </a>`
         )}
-
       </div>
       <div>
         <h2>deployment</h2>
@@ -77,7 +86,7 @@ const renderContent = () =>
           href="/create">DEPLOYING</a>`, //else: 
           () => html`<b class="text-green-400">✓</b> ONLINE`)}
         </div>
-        <a href="${deployLogURL}" class="block text-blue-300 mt-2">> initial deploy log</a>
+        <a href="${deployLogURL}" class="block text-blue-400 hover:text-blue-600 mt-2">> initial deploy log</a>
         <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
         href="#destroy">
           destroy
@@ -91,9 +100,10 @@ const deployId = _s.strRightBack(window.location.pathname, '/')
 $.post('/deploy/' + deployId, res => {
   deploy = res
   log(deploy)
-  deployURL = `https://${deploy.HOST_NAME}`
+  deployWebURL = `https://${deploy.HOST_NAME}`
   deployLogURL = `/deploy/${deploy._id}/log`
   testURL = `/test/${deploy._id}`
+  testHistoryURL = `/test/${deploy._id}/history`,
   renderContent()
   
   $.post('/test/update', res => {
@@ -103,6 +113,13 @@ $.post('/deploy/' + deployId, res => {
       log(isTesting)
     }
     renderContent() 
+
+    $.post(testHistoryURL,  res => {
+      log(res)
+      testHistory = res 
+      renderContent() 
+    })
+
   })
 })
 

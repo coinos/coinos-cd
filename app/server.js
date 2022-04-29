@@ -8,12 +8,17 @@ const _s = require('underscore.string')
 const { v4: uuidv4 } = require('uuid')
 const cmd = require('node-cmd')
 const path = require('path')
+const truncateMiddle = require('truncate-middle')
+const dayjs = require('dayjs')
+const relativeTime = require('dayjs/plugin/relativeTime')
+dayjs.extend(relativeTime)
 
 //Database:
 const PouchDB = require('pouchdb')
 const _p = require('underpouch')
 const deploysDb = new PouchDB('./db/deploys')
 const logsDb = new PouchDB('./db/logs')
+const testsDb = new PouchDB('./db/tests')
 
 require('dotenv').config()
 const DIGITALOCEAN_SSH_KEYS = process.env.DIGITALOCEAN_SSH_KEYS
@@ -40,7 +45,8 @@ const pageRoutes = [
   '/create', 
   '/deploy/:deployId', 
   '/deploy/:deployId/log',
-  '/test'
+  '/test',
+  '/test/result/:testId'
 ]
 
 exApp.get(pageRoutes, (req, res) => 
@@ -226,8 +232,6 @@ DROPLET_ID="${deploy.DROPLET_ID}"`
   )
 }
 
-const truncateMiddle = require('truncate-middle')
-
 exApp.post('/create/update', (req, res) => {
   res.send({ deploying, deploy, 
     terminalOutput: truncateMiddle(terminalOutput, 0, 1200, '\n'),
@@ -263,7 +267,6 @@ exApp.get('/test/:deployId', (req, res) => {
   if(testing || tested ) {
     return res.sendFile(process.cwd() + '/index.html')
   }
-
   _p.findWhere(deploysDb, { _id : req.params.deployId },
   (err, deploy) => {
     if(err) { throw err }
@@ -271,7 +274,7 @@ exApp.get('/test/:deployId', (req, res) => {
       testing = true 
       testingId = deploy._id 
       testProcess = cmd.run(`cd ../../coinos-tests; export BASE_URL=https://${deploy.SUBDOMAIN}.coinos.cloud/; npm run test-headless`,
-        (err, data, stderr) => {
+        async (err, data, stderr) => {
           log('### test complete! ### ')
           testing = false
           tested = true
@@ -286,6 +289,13 @@ exApp.get('/test/:deployId', (req, res) => {
           if(_.isEmpty(data)) return res.sendStatus(500)
           testResult = true
           testProcess = null 
+          log('post test result to db...')
+          const dbPost = await testsDb.post({
+            deploy_id : deploy._id, 
+            result : data,
+            date : Date.now()
+          })
+          log(dbPost)
         }
       )
       
@@ -325,4 +335,29 @@ exApp.post('/test/:deployId/dismiss', (req, res)  => {
     testProcess = null
   }
   res.sendStatus(200)
+})
+
+exApp.post('/test/:deployId/history', (req, res) => {
+  _p.where(testsDb, {
+    deploy_id : req.params.deployId
+  }, (err, tests) => {
+    if(err) { throw err }
+    //history need only be a summary (just dates and ids): 
+    tests = _.map(tests, test => {
+      return {
+        date : dayjs(test.date).format('MMM D at HH:mm'), 
+        ago : dayjs(test.date).fromNow(), 
+        _id : test._id
+      }   
+    })
+    res.send(tests)
+  })
+})
+
+exApp.post('/test/result/:testId', async (req, res) => {
+  const test = await testsDb.get(req.params.testId)
+  const deploy = await deploysDb.get(test.deploy_id)
+  test.ago = dayjs(test.date).fromNow()
+  test.dateHuman = dayjs(test.date).format('MMM D [at] HH:mm')
+  res.send({test, deploy})
 })
