@@ -343,13 +343,16 @@ exApp.post('/test/:deployId/history', (req, res) => {
   }, (err, tests) => {
     if(err) { throw err }
     //history need only be a summary (just dates and ids): 
-    tests = _.map(tests, test => {
+    tests = _.chain(tests).map(test => {
       return {
-        date : dayjs(test.date).format('MMM D at HH:mm'), 
+        date : test.date, 
+        dateHuman : dayjs(test.date).format('MMM D at HH:mm'), 
         ago : dayjs(test.date).fromNow(), 
         _id : test._id
       }   
-    })
+    }).sortBy(test => test.date )
+    .value().reverse() 
+    
     res.send(tests)
   })
 })
