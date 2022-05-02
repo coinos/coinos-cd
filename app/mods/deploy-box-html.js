@@ -3,6 +3,7 @@ const is = require('./is')
 const dayjs = require('dayjs')
 const relativeTime = require('dayjs/plugin/relativeTime')
 dayjs.extend(relativeTime)
+const _ = require('underscore')
 
 module.exports = deploy => {
   let deployURL = `https://${deploy.HOST_NAME}`
@@ -13,6 +14,28 @@ module.exports = deploy => {
     testedAgo = dayjs(deploy.lastTest.date).fromNow()
     testResultUrl = `/test/result/${deploy.lastTest.test_id}`
   }
+
+  let onlineHtml
+  //^ for the top right corner 'status' indication
+
+  let deployURLclasses = `mt-4 p-3 inline-block`
+  //^ for the URL part of the template 
+  let btnClasses = `mt-4 p-3 border inline-block`
+
+  if(_.isUndefined(deploy.isOnline)) {
+    btnClasses = btnClasses + ' opacity-40 bg-gray-200'
+    deployURLclasses = deployURLclasses + ' text-blue-400 opacity-40'
+    onlineHtml = () => html`<span class="opacity-40"> checking status...</span>`
+  } else if(deploy.isOnline) {
+    btnClasses = btnClasses + ' bg-green-100 hover:bg-green-200'
+    deployURLclasses = deployURLclasses + ' text-blue-400'
+    onlineHtml = () => html`<b class="text-green-400">✓</b> ONLINE`
+  } else {
+    btnClasses = btnClasses + ' opacity-40 bg-gray-100 hover:bg-gray-200'
+    deployURLclasses = deployURLclasses + ' opacity-60'
+    onlineHtml = () => html`<b class="text-red-400">✖</b> OFFLINE`
+  }
+
   log(deploy)
   return html`
   <div class="mt-10 border p-3 max-w-3xl">
@@ -25,7 +48,8 @@ module.exports = deploy => {
         ${is(deploy.deploying, 
           () => html`🚧 <a class="font-bold text-orange-500"
           href="/create">DEPLOYING</a>`, //else: 
-          () => html`<b class="text-green-400">✓</b> ONLINE`)}
+          onlineHtml
+        )}
         ${is(deploy.isTesting, 
           () => html`<a class="block" href="${testURL}">
             🔬 <span class="font-bold text-orange-400 hover:text-orange-600"
@@ -39,13 +63,13 @@ module.exports = deploy => {
         `)}
       </div>
     </div>
-    <a class="mt-4 bg-green-100 p-3 border inline-block hover:bg-green-200"
+    <a class="${btnClasses}"
     href="${deployURLinternal}">
       Droplet ${deploy.DROPLET_ID}
     </a>
-    <a class="mt-4 p-3 inline-block text-blue-400"
+    <a class="${deployURLclasses}"
     href="${deployURL}" target="_blank">
-      ${deployURL} 🌎
+      ${deployURL} ${is(deploy.isOnline, `🌎`, `✖` )}
     </a>
   </div>`
 }

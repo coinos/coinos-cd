@@ -12,6 +12,7 @@ const truncateMiddle = require('truncate-middle')
 const dayjs = require('dayjs')
 const relativeTime = require('dayjs/plugin/relativeTime')
 dayjs.extend(relativeTime)
+const axios = require('axios')
 
 //Database:
 const PouchDB = require('pouchdb')
@@ -63,6 +64,24 @@ exApp.post('/deploy/:deployId', (req, res) => {
       if(err) { log(err); return res.sendStatus(500) }
       res.send(deploy)
     })
+})
+
+exApp.post('/deploy/:deployId/is-online', async (req, res) => {
+  const deploy = await deploysDb.get(req.params.deployId)
+  log(deploy)
+
+  const url = `https://${deploy.HOST_NAME}`
+
+  let getUrl
+  try {
+    getUrl = await axios.get(url)
+  } catch (err) {
+    res.sendStatus(err.response.status)
+  }
+  if(!getUrl) return 
+  
+  log('got the URL')
+  return res.sendStatus(200)
 })
 
 exApp.post('/deploy/:deployId/destroy', async (req, res) => {

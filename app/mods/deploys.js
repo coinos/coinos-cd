@@ -7,6 +7,8 @@ module.exports = () => {
 // Main URL routing: 
 if(window.location.pathname !== '/') return 
 
+let deploys
+
 // Initial index template: 
 $(document.body).prepend(/*html*/`
   <div class="bg-black text-white p-4">
@@ -27,12 +29,33 @@ $(document.body).prepend(/*html*/`
 
 const deployBoxHtml = require('./deploy-box-html')
 
+const renderDeploys = () => 
+  render(
+    document.getElementById('DEPLOYS'), 
+    html`
+      ${deploys.map( deploy => deployBoxHtml(deploy) )}
+    `)
+
 // Fetch & render deploy data: 
-$.get('/deploys', deploys => {
+$.get('/deploys', res => {
+  deploys = res
+  //Get the most recent test... 
   $.post('/test/update', testStatus => {
-    render(document.getElementById('DEPLOYS'), html`
-      ${deploys.map( deploy => deployBoxHtml(deploy) )}`
-    )
+    log(testStatus)
+    renderDeploys() 
+  })
+
+  deploys.forEach( deploy => {
+    let url = `/deploy/${deploy._id}/is-online`
+    $.post(url, res => {
+      log(res)
+      deploy.isOnline = true 
+      renderDeploys()
+    }).catch( err => {
+      log('deploy.isOnline = false')
+      deploy.isOnline = false 
+      renderDeploys()
+    })
   })
 })
 
