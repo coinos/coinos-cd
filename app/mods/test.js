@@ -49,7 +49,7 @@ const testingHtml = () => {
     <a href="#dismiss-test" class="inline-block bg-red-200 p-3 border border-gray-300 mr-6 opacity-50
     hover:border-gray-400 hover:opacity-100">cancel 
     </a>
-    <a class="mr-2 inline-block p-3 border font-bold opacity-90 bg-yellow-300 text-black cursor-default border-yellow-500"
+    <a class="mr-2 inline-block p-3 border font-bold opacity-90 bg-purple-300 text-black cursor-default border-purple-500"
       >testing.... 
     </a>
     ${spinner.html('scale-50')}

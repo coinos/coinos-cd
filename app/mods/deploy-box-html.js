@@ -52,7 +52,7 @@ module.exports = deploy => {
         )}
         ${is(deploy.isTesting, 
           () => html`<a class="block" href="${testURL}">
-            🔬 <span class="font-bold text-orange-400 hover:text-orange-600"
+            🔬 <span class="font-bold text-purple-400 hover:text-purple-600"
           href="${deploy.testURL}">TESTING</span>
         </a>`)
         }

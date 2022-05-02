@@ -52,11 +52,13 @@ const renderContent = () =>
     ${errHtml()}
     <a class="${deployWebURLclasses}"
       href="${deployWebURL}" target="_blank">
-      ${deployWebURL} ${is(isOnline, `🌎`, `✖` )}
+      ${deployWebURL} ${is(isOnline, `🌎` )}
+      ${is(isOnline === false, `✖`)}
     </a>
     <div class="grid grid-cols-3 gap-4">
       <div>
         <h2>details</h2>
+        <p><span>Deployed:</span> ${deploy.date.ago}</p>
         <p><span>Branch:</span> ${deploy.BRANCH_NAME}</p>
         <p><span>Host:</span> ${deploy.host}</p>
         <p><span>Droplet ID:</span> ${deploy.DROPLET_ID}</p>
@@ -69,13 +71,13 @@ const renderContent = () =>
         )}
 
         ${is(isTesting && isOnline, () => html`
-          <a href="${testURL}" class="mt-3 mr-2 inline-block p-3 border font-bold opacity-90 bg-yellow-300 text-black border-yellow-500 hover:border-yellow-800"
+          <a href="${testURL}" class="mt-3 mr-2 inline-block p-3 border font-bold opacity-90 bg-purple-300 text-black border-purple-500 hover:border-purple-800"
             >testing.... 
           </a>`
         )}
-        ${is(isOnline, () => html`
+        ${is(isOnline && !isTesting, () => html`
           <a class="inline-block mt-3 bg-blue-600 text-white p-3 border border-gray-300 font-bold
-            hover:text-black hover:bg-yellow-300 hover:border-yellow-100"
+            hover:text-black hover:bg-purple-300 hover:border-purple-100"
             href="${testURL}"> > Test 
           </a>`
         )}
@@ -84,6 +86,7 @@ const renderContent = () =>
           > > Test 
           </a>`
         )}
+        ${is(deploy.deploying, `test can run after deploy`)}
 
       </div>
       <div>
@@ -92,7 +95,7 @@ const renderContent = () =>
           ${is(deploy.deploying, 
           () => html`🚧 <a class="font-bold text-orange-500"
           href="/create">DEPLOYING</a>`)}
-          ${is(_.isUndefined(isOnline),
+          ${is(_.isUndefined(isOnline) && !deploy.deploying,
             () => html`<span class="opacity-50">checking status</span>`
           )}
           ${is(isOnline, 
@@ -100,7 +103,10 @@ const renderContent = () =>
           ${is(isOnline === false, 
             () => html`<b class="text-red-400">✖</b> OFFLINE`)}
         </div>
-        <a href="${deployLogURL}" class="block text-blue-400 hover:text-blue-600 mt-2">> initial deploy log</a>
+        ${is(!deploy.deploying, 
+          () => html`<a href="${deployLogURL}" class="block text-blue-400 hover:text-blue-600 mt-2">
+          > initial deploy log</a>`
+        )}
         <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
         href="#destroy">
           destroy

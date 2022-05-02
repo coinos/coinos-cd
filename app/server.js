@@ -24,6 +24,9 @@ require('dotenv').config()
 const DIGITALOCEAN_SSH_KEYS = process.env.DIGITALOCEAN_SSH_KEYS
 if(!DIGITALOCEAN_SSH_KEYS || _.isEmpty(DIGITALOCEAN_SSH_KEYS)) throw 'missing DIGITALOCEAN_SSH_KEYS env var'
 
+
+const humanDate = date => dayjs(date).format('MMM D [at] HH:mm')
+
 exApp.use(bodyParser.urlencoded({ extended: true }))
 exApp.use('/', express.static(process.cwd()))
 
@@ -35,10 +38,11 @@ exApp.get('/deploys', async (req, res) => {
   _p.all(deploysDb, (err, deploys) => {
     if(err) { log(err); return res.send(500) }
     log(deploys)
-    deploys = _.map(deploys, deploy => {
+    deploys = _.chain(deploys).map(deploy => {
       if(deploy._id === testingId) deploy.isTesting = true 
       return deploy
-    })
+    }).sortBy(deploy => deploy.date.created)
+    .reverse().value()
     res.send(deploys)
   })
 })
@@ -61,6 +65,8 @@ exApp.post('/deploy/:deployId', (req, res) => {
   _p.findWhere(deploysDb, { _id : req.params.deployId },
     (err, deploy) => {
       if(err) { log(err); return res.sendStatus(500) }
+      deploy.date.ago = dayjs(deploy.date.created).fromNow()
+      deploy.date.human = humanDate(deploy.date.created)
       res.send(deploy)
     })
 })
@@ -378,7 +384,7 @@ exApp.post('/test/:deployId/history', (req, res) => {
     tests = _.chain(tests).map(test => {
       return {
         date : test.date, 
-        dateHuman : dayjs(test.date).format('MMM D [at] HH:mm'), 
+        dateHuman : humanDate(test.date), 
         ago : dayjs(test.date).fromNow(), 
         _id : test._id
       }   
