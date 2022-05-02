@@ -128,7 +128,7 @@ sleep 10
 cp config/lnd/lnd.conf.unlocked config/lnd/lnd.conf
 docker-compose down --remove-orphans
 cd ../coinos-ui
-docker run -v /home/node/coinos-ui/dist:/dist coinos-ui-staging:0.1.0 bash -c 'cd app; pnpm stage; cp -rf dist/* /dist'
+docker run -v /home/node/coinos-ui/dist:/dist coinos-ui-staging:0.1.0 bash -c 'cd app; npm run stage; cp -rf dist/* /dist'
 cd ../coinos-server
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.staging.yml up -d
 sleep 10
