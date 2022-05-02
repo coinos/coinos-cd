@@ -3,6 +3,7 @@ const $ = require('jquery')
 const _s = require('underscore.string')
 const {render, html} = require('uhtml')
 const is = require('./is')
+const _ = require('underscore')
 
 let deploy, deployWebURL, deployLogURL, testURL, isTesting, error
 let testHistory = []
@@ -49,9 +50,9 @@ const renderContent = () =>
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>
     ${errHtml()}
-    <a class="block my-6 text-blue-400 hover:text-blue-500"
+    <a class="${deployWebURLclasses}"
       href="${deployWebURL}" target="_blank">
-      ${deployWebURL} 🌎
+      ${deployWebURL} ${is(isOnline, `🌎`, `✖` )}
     </a>
     <div class="grid grid-cols-3 gap-4">
       <div>
@@ -67,24 +68,37 @@ const renderContent = () =>
           () => html`<p><span>(no tests yet)</span></p>`
         )}
 
-        ${is(isTesting, () => html`
+        ${is(isTesting && isOnline, () => html`
           <a href="${testURL}" class="mt-3 mr-2 inline-block p-3 border font-bold opacity-90 bg-yellow-300 text-black border-yellow-500 hover:border-yellow-800"
             >testing.... 
-          </a>`, 
-          () => html`
+          </a>`
+        )}
+        ${is(isOnline, () => html`
           <a class="inline-block mt-3 bg-blue-600 text-white p-3 border border-gray-300 font-bold
             hover:text-black hover:bg-yellow-300 hover:border-yellow-100"
             href="${testURL}"> > Test 
           </a>`
         )}
+        ${is(isOnline === false, () => html`
+          <a disabled class="inline-block mt-3 bg-gray-100 p-3 border border-gray-300 opacity-40 text-gray-400 select-none"
+          > > Test 
+          </a>`
+        )}
+
       </div>
       <div>
         <h2>deployment</h2>
         <div class="mt-4">
           ${is(deploy.deploying, 
           () => html`🚧 <a class="font-bold text-orange-500"
-          href="/create">DEPLOYING</a>`, //else: 
-          () => html`<b class="text-green-400">✓</b> ONLINE`)}
+          href="/create">DEPLOYING</a>`)}
+          ${is(_.isUndefined(isOnline),
+            () => html`<span class="opacity-50">checking status</span>`
+          )}
+          ${is(isOnline, 
+            () => html`<b class="text-green-400">✓</b> ONLINE`)}
+          ${is(isOnline === false, 
+            () => html`<b class="text-red-400">✖</b> OFFLINE`)}
         </div>
         <a href="${deployLogURL}" class="block text-blue-400 hover:text-blue-600 mt-2">> initial deploy log</a>
         <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
@@ -97,6 +111,7 @@ const renderContent = () =>
 
 //Fetch and render the details of this specific deploy: 
 const deployId = _s.strRightBack(window.location.pathname, '/')
+
 $.post('/deploy/' + deployId, res => {
   deploy = res
   log(deploy)
@@ -119,8 +134,20 @@ $.post('/deploy/' + deployId, res => {
       testHistory = res 
       renderContent() 
     })
-
   })
+})
+
+let isOnline
+let deployWebURLclasses = `block my-6 `
+//online check 
+$.post(`/deploy/${deployId}/is-online`, () => {
+  isOnline = true 
+  deployWebURLclasses = `${deployWebURLclasses} text-blue-400 hover:text-blue-500`
+  renderContent()
+}).catch( () => {
+  isOnline = false 
+  deployWebURLclasses = `${deployWebURLclasses} opacity-50`
+  renderContent()
 })
 
 // In-page routing: 
