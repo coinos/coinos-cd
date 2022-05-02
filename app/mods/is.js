@@ -1,4 +1,3 @@
-const {html} = require('uhtml')
 const _ = require('underscore')
 
 const is = (condition, template, elseTemplate) => {
