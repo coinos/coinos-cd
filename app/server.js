@@ -5,7 +5,6 @@ const bodyParser = require('body-parser')
 const fs = require('fs')
 const _ = require('underscore')
 const _s = require('underscore.string')
-const { v4: uuidv4 } = require('uuid')
 const cmd = require('node-cmd')
 const path = require('path')
 const truncateMiddle = require('truncate-middle')
@@ -379,7 +378,7 @@ exApp.post('/test/:deployId/history', (req, res) => {
     tests = _.chain(tests).map(test => {
       return {
         date : test.date, 
-        dateHuman : dayjs(test.date).format('MMM D at HH:mm'), 
+        dateHuman : dayjs(test.date).format('MMM D [at] HH:mm'), 
         ago : dayjs(test.date).fromNow(), 
         _id : test._id
       }   
