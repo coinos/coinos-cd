@@ -42,7 +42,9 @@ const historyHtml = () => html`
     const testResultUrl = `/test/result/${test._id}`
     return html`
       <a class="block text-blue-400 hover:text-blue-600" 
-      href="${testResultUrl}">> ${test.ago}</a>`
+      href="${testResultUrl}">${test.ago}
+      ${test.passed ? '✔' : '✖'}
+      </a>`
     }
   )}
 `

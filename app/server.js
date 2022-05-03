@@ -409,7 +409,8 @@ exApp.post('/test/:deployId/history', (req, res) => {
         date : test.date, 
         dateHuman : humanDate(test.date), 
         ago : dayjs(test.date).fromNow(), 
-        _id : test._id
+        _id : test._id, 
+        passed : test.passed 
       }   
     }).sortBy(test => test.date )
     .value().reverse() 

@@ -9,10 +9,11 @@ module.exports = deploy => {
   let deployURL = `https://${deploy.HOST_NAME}`
   let deployURLinternal = `/deploy/${deploy._id}`
   let testURL = `/test/${deploy._id}`
-  let testedAgo, testResultUrl
+  let testedAgo, testResultUrl, testPassed
   if(deploy.lastTest) {
     testedAgo = dayjs(deploy.lastTest.date).fromNow()
     testResultUrl = `/test/result/${deploy.lastTest.test_id}`
+    testPassed = deploy.lastTest.passed
   }
 
   // Default name and type: 
@@ -70,7 +71,8 @@ module.exports = deploy => {
      
         ${is(deploy.lastTest, () => html`
           <a href="${testResultUrl}" class="block text-blue-400">tested 
-          ${testedAgo}</a>
+          ${testedAgo} ${testPassed ? '✔' : '✖'}
+          </a>
         `)}
       </div>
     </div>

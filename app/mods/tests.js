@@ -1,12 +1,10 @@
 const {render, html} = require('lighterhtml')
 const $ = require('jquery')
 const is = require('./is')
-const day = require('dayjs')
 const asyncjs = require('async')
 const _ = require('underscore')
 const _s = require('underscore.string')
 const spinner = require('./spinner')
-const test = require('./test')
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -21,6 +19,9 @@ $(document.head).append(spinner.style)
 
 const hideOrShowClass = test => {
   if(!test.deploy) return ''
+  if(selectedSubdomain === 'coinos.io' && test.deploy.HOST_NAME === 'coinos.io') {
+    return ''
+  }
   if(test.deploy.SUBDOMAIN === selectedSubdomain ||
     selectedSubdomain === 'all') {
     return ''
@@ -54,8 +55,7 @@ renderBody = () => render(document.body, () => html`
           </a>
         `)}
       </div>
-      <hr class="border-black border-2 mb-4" style="margin-top:6px;" />
-  
+      <hr class="bg-black mb-4" style="margin-top:6px; height:3px;" />
     `, 'there are no tests :/')}
 
     ${tests.map( test => html`
@@ -85,7 +85,10 @@ renderBody = () => render(document.body, () => html`
           <div>
             <a class="hover:text-blue-500" href="/test/result/${test._id}">
               <b>${test.dateHuman}</b>
-              <span class="opacity-50 ml-3"> (${test.dateAgo})</span>
+              <span class="opacity-50 ml-1"> (${test.dateAgo})</span>
+              <b class="ml-1 ${test.passed ? 'text-green-500' : 'text-pink-500'}">
+                ${test.passed ? 'OK' : 'NOTOK'}
+              </b>
               <br>
             </a>
             ${is(test.deploy, 
@@ -96,6 +99,12 @@ renderBody = () => render(document.body, () => html`
             )}
           </div>
           <span class="flex-auto"></span>
+          ${is(test.passed, () => html`
+            <img class="w-12 mx-6 opacity-30 scale-70" src="img/IonIosCheckmarkCircle.svg" />
+          `, 
+            () => html`
+            <img class="w-12 mx-6 opacity-20 scale-70" src="img/IcBaselineError.svg" />
+          `)}
           <img class="w-12" src="img/LogosPuppeteer.svg" />
           `
         )}
