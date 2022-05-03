@@ -13,6 +13,7 @@ module.exports = () => {
 
 // Main URL routing: 
 if(window.location.pathname.search('deploy') === -1) return 
+if(window.location.pathname.search('deploys') > -1) return 
 if(window.location.pathname.search('log') > -1) return 
 
 // Initial deploy template: 

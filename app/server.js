@@ -12,6 +12,7 @@ const dayjs = require('dayjs')
 const relativeTime = require('dayjs/plugin/relativeTime')
 dayjs.extend(relativeTime)
 const axios = require('axios')
+const cheerio = require('cheerio')
 
 //Database:
 const PouchDB = require('pouchdb')
@@ -28,13 +29,12 @@ if(!DIGITALOCEAN_SSH_KEYS || _.isEmpty(DIGITALOCEAN_SSH_KEYS)) throw 'missing DI
 const humanDate = date => dayjs(date).format('MMM D [at] HH:mm')
 
 exApp.use(bodyParser.urlencoded({ extended: true }))
-exApp.use('/', express.static(process.cwd()))
 
 exApp.listen(8456, () => 
   log('http://localhost:8456'))
 
 
-exApp.get('/deploys', async (req, res) => {
+exApp.post('/deploys', async (req, res) => {
   _p.all(deploysDb, (err, deploys) => {
     if(err) { log(err); return res.send(500) }
     log(deploys)
@@ -47,9 +47,32 @@ exApp.get('/deploys', async (req, res) => {
   })
 })
 
-// Routes: 
+// Load index.html into cheerio...
+const indexFile = fs.readFileSync( process.cwd() + '/index.html' ) 
+const $cj = cheerio.load( indexFile )
+// so we can modify the src for main script tag...
+$cj('body script').attr('src', '/client-login.bundle.js')
+const loginHtml = $cj.html()
+// and send on / root request: 
+exApp.get('/', (req, res) => res.send( loginHtml ))
+//(other routes will use the unmodified index.html )
+
+exApp.post('/coinos-cd-login', (req, res) => {
+  log('login attempt')
+  //add cookie, etc 
+  if(req.body.username === 'satoshi' &&
+  req.body.password === '806!c11e9') {
+    res.sendStatus(200)
+  } else {
+    res.sendStatus(401)
+  }
+})
+
+exApp.use('/', express.static(process.cwd()))
+
+// Protected routes (todo: protect routes): 
 const pageRoutes = [
-  '/', 
+  '/deploys', 
   '/create', 
   '/deploy/:deployId', 
   '/deploy/:deployId/log',
@@ -57,6 +80,7 @@ const pageRoutes = [
   '/test/result/:testId',
   '/tests'
 ]
+//todo: protect client.bundle.js
 
 exApp.get(pageRoutes, (req, res) => 
   res.sendFile(process.cwd() + '/index.html')

@@ -2,6 +2,7 @@ const $ = require('jquery')
 const {render, html} = require('lighterhtml')
 const day= require('dayjs')
 const spinner = require('./spinner')
+const delay = require('./delay')
 
 let err = deployed = deploying = canceled = false
 let terminalOutput = '> deploying new coinos instance...'
@@ -173,8 +174,6 @@ const renderContent = () => {
   `)
 }
 
-const delay = async (seconds) =>
-  await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
 
 const handleRes = async res => {
   if(canceled) return
