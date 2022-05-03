@@ -24,6 +24,8 @@ const testsDb = new PouchDB('./db/tests')
 require('dotenv').config()
 const DIGITALOCEAN_SSH_KEYS = process.env.DIGITALOCEAN_SSH_KEYS
 if(!DIGITALOCEAN_SSH_KEYS || _.isEmpty(DIGITALOCEAN_SSH_KEYS)) throw 'missing DIGITALOCEAN_SSH_KEYS env var'
+const COINOS_CD_PASSWORD = process.env.COINOS_CD_PASSWORD
+if(!COINOS_CD_PASSWORD || _.isEmpty(COINOS_CD_PASSWORD)) throw 'missing COINOS_CD_PASSWORD env var'
 
 
 const humanDate = date => dayjs(date).format('MMM D [at] HH:mm')
@@ -61,7 +63,7 @@ exApp.post('/coinos-cd-login', (req, res) => {
   log('login attempt')
   //add cookie, etc 
   if(req.body.username === 'satoshi' &&
-  req.body.password === '806!c11e9') {
+  req.body.password === COINOS_CD_PASSWORD) {
     res.sendStatus(200)
   } else {
     res.sendStatus(401)
