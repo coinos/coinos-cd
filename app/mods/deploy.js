@@ -1,7 +1,7 @@
 const log = console.log
 const $ = require('jquery')
 const _s = require('underscore.string')
-const {render, html} = require('uhtml')
+const {render, html} = require('lighterhtml')
 const is = require('./is')
 const _ = require('underscore')
 
@@ -26,7 +26,8 @@ $(document.head).append(/*html*/`
 $(document.body).prepend(/*html*/`
   <div class="bg-black text-white p-4">
     <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 font-bold">Deploy</a>
+    <a href="/" class="px-1 font-bold mr-3">Deploy</a>
+    <a href="/tests" class="px-1">Test</a>
   </div>
   <div id="DEPLOY" class="m-4"></div>
 `)
@@ -86,7 +87,8 @@ const renderContent = () =>
           > > Test 
           </a>`
         )}
-        ${is(deploy.deploying, `test can run after deploy`)}
+        ${is(deploy.deploying, () => html`<span class="opacity-30">
+          (test can run after deploy)</span>`)}
 
       </div>
       <div>

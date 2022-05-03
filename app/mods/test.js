@@ -1,7 +1,7 @@
 const log = console.log
 const _s = require('underscore.string')
 const $ = require('jquery')
-const {render, html} = require('uhtml')
+const {render, html} = require('lighterhtml')
 const spinner = require('./spinner')
 
 const delay = async (seconds) =>
@@ -12,6 +12,7 @@ module.exports = () => {
 // #### Coinos CD module #### 
 
 if(window.location.pathname.search('test') === -1) return 
+if(window.location.pathname.search('tests') > -1) return 
 if(window.location.pathname.search('result') > -1) return 
 
 log('this is a coinos test')
@@ -30,7 +31,7 @@ const renderContent = () =>
   <div class="bg-black text-white p-4">
     <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
     <a href="/" class="px-1 mr-3">Deploy</a>
-    <a href="/" class="px-1 font-bold">Test</a>
+    <a href="/tests" class="px-1 font-bold">Test</a>
 
   </div>
   <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
@@ -77,12 +78,6 @@ $(document.head).append(/*html*/`
   </style>
 `)
 
-$.post(`/deploy/${deployId}`, theDeploy => {
-  deploy = theDeploy
-  deployUrl = `/deploy/${deploy._id}`
-  renderContent()
-})
-
 const handleRes = async res => {
   log(res)
   $('#TEST').html(res.testOutput)
@@ -94,7 +89,13 @@ const handleRes = async res => {
   renderContent()
 }
 
-$.post(`/test/update`, handleRes) 
+$.post(`/deploy/${deployId}`, theDeploy => {
+  deploy = theDeploy
+  deployUrl = `/deploy/${deploy._id}`
+  renderContent()
+  $.post(`/test/update`, handleRes) 
+})
+
 
 
 window.addEventListener('hashchange', async e => {

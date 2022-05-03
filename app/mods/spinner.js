@@ -1,4 +1,4 @@
-const {html} = require('uhtml')
+const {html} = require('lighterhtml')
 
 module.exports = {
   style : /*html*/`<style>

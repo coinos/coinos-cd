@@ -10,4 +10,4 @@ require('./mods/deploy-log')()
 require('./mods/create')()
 require('./mods/test')()
 require('./mods/test-result')()
-
+require('./mods/tests')()

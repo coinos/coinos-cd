@@ -1,7 +1,7 @@
 const log = console.log
 const $ = require('jquery')
 const _s = require('underscore.string')
-const {render, html} = require('uhtml')
+const {render, html} = require('lighterhtml')
 
 module.exports = () => {
 // #### Coinos CD module #### 

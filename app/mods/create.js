@@ -1,5 +1,5 @@
 const $ = require('jquery')
-const {render, html} = require('uhtml')
+const {render, html} = require('lighterhtml')
 const day= require('dayjs')
 const spinner = require('./spinner')
 
@@ -25,7 +25,8 @@ $(document.head).append(/*html*/`
 $(document.body).prepend(/*html*/`
   <div class="bg-black text-white p-4">
     <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 font-bold">Deploy</a>
+    <a href="/" class="px-1 font-bold mr-3">Deploy</a>
+    <a href="/tests" class="px-1">Test</a>
   </div>
   <div class="m-4">
     <div class="text-4xl font-bold">

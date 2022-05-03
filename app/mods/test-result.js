@@ -1,6 +1,6 @@
 const $ = require('jquery')
 const _s = require('underscore.string')
-const {render, html} = require('uhtml')
+const {render, html} = require('lighterhtml')
 
 module.exports = () => {
   if(window.location.pathname.search('test') === -1) return false 

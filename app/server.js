@@ -54,7 +54,8 @@ const pageRoutes = [
   '/deploy/:deployId', 
   '/deploy/:deployId/log',
   '/test',
-  '/test/result/:testId'
+  '/test/result/:testId',
+  '/tests'
 ]
 
 exApp.get(pageRoutes, (req, res) => 
@@ -64,7 +65,7 @@ exApp.get(pageRoutes, (req, res) =>
 exApp.post('/deploy/:deployId', (req, res) => {
   _p.findWhere(deploysDb, { _id : req.params.deployId },
     (err, deploy) => {
-      if(err) { log(err); return res.sendStatus(500) }
+      if(err || !deploy) { log(err); return res.sendStatus(500) }
       deploy.date.ago = dayjs(deploy.date.created).fromNow()
       deploy.date.human = humanDate(deploy.date.created)
       res.send(deploy)
@@ -90,16 +91,9 @@ exApp.post('/deploy/:deployId/is-online', async (req, res) => {
 })
 
 exApp.post('/deploy/:deployId/destroy', async (req, res) => {
-  try {
-    const deploy = await deploysDb.get(req.params.deployId)
-    const removed = await deploysDb.remove(deploy)
-    log(removed)
-  } catch (e) {
-    log(e) 
-  }
 
   cmd.run('cd ../deploy-droplet; ./destroy-droplet.sh',  
-  (err, data, stderr) => {
+  async (err, data, stderr) => {
     if(err) {
       log('err: ' + err) 
       log('stderr:' + stderr )
@@ -107,6 +101,17 @@ exApp.post('/deploy/:deployId/destroy', async (req, res) => {
     }
     if(_.isEmpty(data)) return res.sendStatus(500)
     log(data)
+
+    //now delete the deploy doc: 
+    try {
+      const deploy = await deploysDb.get(req.params.deployId)
+      const removed = await deploysDb.remove(deploy)
+      log(removed)
+      //remove all the tests in the DB for this one 
+    } catch (e) {
+      log(e) 
+    }
+
     res.sendStatus(200)
   })
 
@@ -401,4 +406,78 @@ exApp.post('/test/result/:testId', async (req, res) => {
   test.ago = dayjs(test.date).fromNow()
   test.dateHuman = dayjs(test.date).format('MMM D [at] HH:mm')
   res.send({test, deploy})
+})
+
+exApp.post('/tests', async (req, res) => {
+  await deleteOrphanTests() 
+  _p.all(testsDb, (err, tests) => {
+    if(err) throw err
+    tests = _.chain(tests).map(test => {
+      test.dateHuman = dayjs(test.date).format('MMM D [at] HH:mm')
+      test.dateAgo = dayjs(test.date).fromNow()
+      return test 
+    }).sortBy(test => test.date )
+    .value().reverse() 
+
+    //also check if we are currently doing a test... 
+    if(testing) tests.unshift({
+      testing : true, 
+      deploy_id : testingId 
+    })
+
+    res.send(tests)
+  })
+})
+
+const deleteOrphanTests = () => {
+  return new Promise(resolve => {
+
+    _p.all(deploysDb, (err, deploys) => {
+      if(err | !deploys) { throw 'err or no deploys found' }
+
+      _p.all(testsDb, async (err, tests) => {
+        if(err | !tests) { throw 'err or no tests found' }
+
+        for (const test of tests) {
+          let matchingDeploy = _.findWhere(deploys, {
+            _id : test.deploy_id
+          })
+          if(!matchingDeploy) {
+            log('removing a test...')
+            const removeResult = await testsDb.remove(test)
+            log(removeResult)
+          }
+        }
+        resolve()
+      })
+    })
+  })
+}
+
+exApp.post('/delete-orphan-tests', async (req, res) => {
+  try {
+    await deleteOrphanTests()
+    res.sendStatus(200)
+  } catch (err) {
+    res.sendStatus(500)
+  }
+})
+
+//todo: delete orphan Deploys; ie- Droplets that can not be found 
+//in Digital Ocean 
+
+const deleteDeployDoc = docId =>   
+  new Promise(async resolve => {
+    try {
+      const deployDoc = await deploysDb.get(docId)
+      await deploysDb.remove(deployDoc)
+      resolve()
+    } catch(err) { throw err }
+  })
+
+exApp.post('/delete-deploy-doc/:deployId', async (req, res) => {
+  try {
+    await deleteDeployDoc(req.params.deployId)
+    res.sendStatus(200)
+  } catch(err) { res.sendStatus(500)}
 })
