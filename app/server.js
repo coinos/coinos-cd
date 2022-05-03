@@ -297,6 +297,7 @@ exApp.post('/deploy/:deployId/dismiss', (req, res)  => {
   log('dismiss deploy')
   deploy = null
   deploying = false 
+  deployed = null 
   terminalOutput = ''
   res.sendStatus(200)
 })
