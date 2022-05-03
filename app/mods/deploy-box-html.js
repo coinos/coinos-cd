@@ -15,6 +15,17 @@ module.exports = deploy => {
     testResultUrl = `/test/result/${deploy.lastTest.test_id}`
   }
 
+  // Default name and type: 
+  let deployName = `Droplet ${deploy.DROPLET_ID}`
+  let deployType = 'regtest cloud'
+
+  // accommodate for coinos.io mothership deploy: 
+  if(deploy.HOST_NAME === 'coinos.io') {
+    deployType = 'LIVE PRODUCTION'
+    deploy.SUBDOMAIN = 'coinos.io'
+    deployName = 'baremetal A1'
+  }
+
   let onlineHtml
   //^ for the top right corner 'status' indication
 
@@ -41,7 +52,7 @@ module.exports = deploy => {
   <div class="mt-10 border p-3 max-w-3xl">
     <div class="flex">
       <a href="${deployURLinternal}" class="text-2xl hover:text-blue-700">
-        <b class="">${deploy.SUBDOMAIN}</b> - regtest cloud
+        <b class="">${deploy.SUBDOMAIN}</b> - ${deployType}
       </a> 
       <div class="flex-auto"></div>
       <div class="text-right">
@@ -65,7 +76,7 @@ module.exports = deploy => {
     </div>
     <a class="${btnClasses}"
     href="${deployURLinternal}">
-      Droplet ${deploy.DROPLET_ID}
+      ${deployName}
     </a>
     <a class="${deployURLclasses}"
     href="${deployURL}" target="_blank">

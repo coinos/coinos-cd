@@ -5,7 +5,7 @@ const {render, html} = require('lighterhtml')
 const is = require('./is')
 const _ = require('underscore')
 
-let deploy, deployWebURL, deployLogURL, testURL, isTesting, error
+let deploy, deployWebURL, deployLogURL, deployHost, testURL, isTesting, error
 let testHistory = []
 
 module.exports = () => {
@@ -48,8 +48,12 @@ const historyHtml = () => html`
 `
 const renderContent = () => 
   render(document.getElementById('DEPLOY'), html`
-    <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
-    <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>
+    <h1 class="inline-block text-4xl font-bold">
+      ${is(deploy.HOST_NAME !== 'coinos.io', 
+        () => html`<span class="ml-3">coinos server</span>`
+      )}
+    </h1>
+    <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - ${deployType}</h1>
     ${errHtml()}
     <a class="${deployWebURLclasses}"
       href="${deployWebURL}" target="_blank">
@@ -61,9 +65,12 @@ const renderContent = () =>
         <h2>details</h2>
         <p><span>Deployed:</span> ${deploy.date.ago}</p>
         <p><span>Branch:</span> ${deploy.BRANCH_NAME}</p>
-        <p><span>Host:</span> ${deploy.host}</p>
-        <p><span>Droplet ID:</span> ${deploy.DROPLET_ID}</p>
-        <p><span>IP:</span> ${deploy.IP_ADDRESS}</p>
+        <p><span>Host:</span> ${deployHost}</p>
+        ${is(deploy.HOST_NAME !== 'coinos.io', 
+          () => html`
+          <p><span>Droplet ID:</span> ${deploy.DROPLET_ID}</p>
+          <p><span>IP:</span> ${deploy.IP_ADDRESS}</p>`
+        )}
       </div>
       <div>
         <h2>tests</h2>
@@ -105,14 +112,21 @@ const renderContent = () =>
           ${is(isOnline === false, 
             () => html`<b class="text-red-400">✖</b> OFFLINE`)}
         </div>
-        ${is(!deploy.deploying, 
+        ${is(!deploy.deploying && deploy.HOST_NAME !== 'coinos.io', 
           () => html`<a href="${deployLogURL}" class="block text-blue-400 hover:text-blue-600 mt-2">
           > initial deploy log</a>`
         )}
-        <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
-        href="#destroy">
-          destroy
-        </a>
+        ${is(deploy.HOST_NAME !== 'coinos.io', () => html`
+          <a class="mt-4 bg-gray-200 p-3 border inline-block hover:bg-gray-400"
+          href="#destroy">
+            destroy
+          </a>`,
+          () => html`
+          <a class="mt-4 bg-gray-200 p-3 border inline-block opacity-20 select-none">
+            destroy
+          </a>`
+        )}
+
       </div>
     </div>
   `)
@@ -120,13 +134,28 @@ const renderContent = () =>
 //Fetch and render the details of this specific deploy: 
 const deployId = _s.strRightBack(window.location.pathname, '/')
 
+let deployType = 'regtest cloud'
+
 $.post('/deploy/' + deployId, res => {
   deploy = res
   log(deploy)
   deployWebURL = `https://${deploy.HOST_NAME}`
   deployLogURL = `/deploy/${deploy._id}/log`
+  deployHost = deploy.host
   testURL = `/test/${deploy._id}`
-  testHistoryURL = `/test/${deploy._id}/history`,
+  testHistoryURL = `/test/${deploy._id}/history`
+
+  // Default name type: 
+  let deployName = `Droplet ${deploy.DROPLET_ID}`
+
+  // accommodate for coinos.io mothership deploy: 
+  if(deploy.HOST_NAME === 'coinos.io') {
+    deployType = 'LIVE PRODUCTION'
+    deploy.SUBDOMAIN = 'coinos.io'
+    deployName = 'baremetal A1'
+    deployHost = 'A1'
+  }
+
   renderContent()
   
   $.post('/test/update', res => {
@@ -166,9 +195,12 @@ window.addEventListener('hashchange', e => {
     log('destroy a deploy!')
     $.post(`/deploy/${deploy._id}/destroy`, res => {
       if(res !== 'OK') return alert('problem')
+      log(deploy.HOST_NAME)
       render(document.getElementById('DEPLOY'), html`
-        <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
-        <h1 class="inline-block text-4xl font-light opacity-20 line-through">${deploy.SUBDOMAIN} - regtest cloud</h1>
+        <h1 class="inline-block text-4xl font-bold mr-3">
+          ${is(deploy.HOST_NAME !== 'coinos.io', 'coinos server')}
+        </h1>
+        <h1 class="inline-block text-4xl font-light opacity-20 line-through">${deploy.SUBDOMAIN} - ${deployType}</h1>
         <p class="mt-4 p-3 bg-yellow-200">This deployment was destroyed successfully.</p>
         <a href="/" class="inline-block mt-2 bg-gray-100 text-gray-700 p-3 border border-gray-300 mr-6 opacity-80
         hover:border-gray-400
