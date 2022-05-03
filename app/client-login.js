@@ -57,8 +57,7 @@ const renderPage = () => render( document.body, () => html`
   </div>
 `)
 
-window.addEventListener('hashchange', e => {
-  if(window.location.hash !== '#login') return 
+const loginAttempt = () => {
   $j.post('/coinos-cd-login', {
     username : $j('#username').val(),
     password: $j('#password').val() 
@@ -71,6 +70,15 @@ window.addEventListener('hashchange', e => {
     ok = false 
     renderPage() 
   })
+}
+
+window.addEventListener('hashchange', () => {
+  if(window.location.hash !== '#login') return 
+  loginAttempt()
+})
+
+window.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && ok === null) loginAttempt()
 })
 
 window.location.hash = ''
