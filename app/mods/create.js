@@ -195,10 +195,26 @@ const handleRes = async res => {
   deploying = false 
   deployed = true
   renderContent()
+  checkDeployStatus()
+}
+
+const checkDeployStatus = () => {
+  log('checkDeployStatus')
+
+  $.post(`/deploy/${deploy._id}/is-online` , res => {
+    log(res)
+    deploy.isOnline = true 
+    renderContent()
+  }).catch(async err => {
+    deploy.isOnline = false 
+    renderContent()
+    await delay(10) //< check status every 10 seconds
+    checkDeployStatus() 
+  })
 }
 
 // In-page routing: 
-window.addEventListener('hashchange', e => {
+window.addEventListener('hashchange', async e => {
   if(window.location.hash === '#deploy') {
     deploying = true 
     canceled = false
