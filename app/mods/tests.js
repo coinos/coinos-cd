@@ -56,7 +56,7 @@ renderBody = () => render(document.body, () => html`
       </div>
       <hr class="border-black border-2 mb-4" style="margin-top:6px;" />
   
-    `, 'there are no deploys; no deploys, no tests :/')}
+    `, 'there are no tests :/')}
 
     ${tests.map( test => html`
       <div class="mb-4 border-b-2 p-3 max-w-3xl flex items-center
