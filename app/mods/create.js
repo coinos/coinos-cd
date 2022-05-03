@@ -83,6 +83,9 @@ const deployedHtml = () => {
   <a class="inline-block mt-12 p-3 border font-bold bg-green-300 text-black cursor-default border-green-500"
     >deployed!
   </a>  
+  <a href="#dismiss" class="ml-6 inline-block mt-12 p-3 border bg-blue-300 text-white border-blue-400 hover:border-blue-700 hover:bg-blue-400"
+    >dismiss > 
+  </a>
   <div id="terminal">
     > deploying new coinos instance...<br>
     ${terminalOutput}<br>
@@ -220,10 +223,14 @@ window.addEventListener('hashchange', async e => {
     canceled = false
     renderContent()
     $.post('/create', deploy, handleRes)
-  } else if(window.location.hash === '#cancel') {
+  } else if(window.location.hash === '#cancel' || 
+    window.location.hash === '#dismiss') {
     deploying = false 
     canceled = true
     renderContent()
+    $.post(`/deploy/${deploy._id}/dismiss`)
+    await delay(1) 
+    window.location.pathname = `/`
   }
 })
 

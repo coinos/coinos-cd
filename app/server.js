@@ -293,6 +293,14 @@ exApp.post('/deploy/:deployId/log', (req, res) => {
   })
 })
 
+exApp.post('/deploy/:deployId/dismiss', (req, res)  => {
+  log('dismiss deploy')
+  deploy = null
+  deploying = false 
+  terminalOutput = ''
+  res.sendStatus(200)
+})
+
 let testing = false 
 let testResult
 let testOutput = ''
