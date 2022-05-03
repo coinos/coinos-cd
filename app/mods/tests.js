@@ -5,6 +5,7 @@ const asyncjs = require('async')
 const _ = require('underscore')
 const _s = require('underscore.string')
 const spinner = require('./spinner')
+const upperNavHtml = require('./upper-nav-html')
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -30,11 +31,7 @@ const hideOrShowClass = test => {
 }
 
 renderBody = () => render(document.body, () => html`
-  <div class="bg-black text-white p-4">
-    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 mr-3">Deploy</a>
-    <a class="px-1 font-bold">Test</a>
-  </div>
+  ${upperNavHtml()}
   <div class="m-4">
   <h1 class="text-4xl font-bold mb-6">coinos tests</h1>
   

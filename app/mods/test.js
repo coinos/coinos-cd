@@ -4,7 +4,7 @@ const $ = require('jquery')
 const {render, html} = require('lighterhtml')
 const spinner = require('./spinner')
 const is = require('./is')
-
+const upperNavHtml = require('./upper-nav-html')
 
 const delay = async (seconds) =>
   await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
@@ -31,12 +31,7 @@ $(document.head).append(spinner.style)
 
 const renderContent = () => 
   render(document.body, html`
-  <div class="bg-black text-white p-4">
-    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 mr-3">Deploy</a>
-    <a href="/tests" class="px-1 font-bold">Test</a>
-
-  </div>
+  ${upperNavHtml()}
   <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
     <h1 class="inline-block text-4xl font-bold">
       ${is(deploy.HOST_NAME !== 'coinos.io', 

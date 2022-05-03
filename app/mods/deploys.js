@@ -1,5 +1,6 @@
 const $ = require('jquery')
 const {render, html} = require('lighterhtml')
+const upperNavHtml = require('./upper-nav-html')
 
 module.exports = () => {
 // #### Coinos CD module ####
@@ -10,25 +11,19 @@ if(window.location.pathname !== '/deploys') return
 let deploys
 
 // Initial index template: 
-$(document.body).prepend(/*html*/`
-  <div class="bg-black text-white p-4 flex">
-    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a class="px-1 font-bold mr-3">Deploy</a>
-    <a href="/tests" class="px-1">Test</a>
-    <span class="flex-auto"></span>
-    <a href="/" class="opacity-50 hover:opacity-100">logout</a>
-  </div>
+render(document.body, () => html`
+  ${upperNavHtml()}
   <div class="m-4">
-  <h1 class="text-4xl font-bold">coinos deploys</h1>
+    <h1 class="text-4xl font-bold">coinos deploys</h1>
 
-  <div id="DEPLOYS"></div>
+    <div id="DEPLOYS"></div>
 
-  <a href="/create" class="${deploys ? 'mt-12' : 'mt-6'} inline-block bg-blue-600 text-white p-3 border border-gray-300
-  hover:bg-yellow-300 hover:text-black hover:border-yellow-100"">+ Create new 
-    <span class="font-bold">deploy</span>
-  </a>
+    <a href="/create" class="${deploys ? 'mt-12' : 'mt-6'} inline-block bg-blue-600 text-white p-3 border border-gray-300
+    hover:bg-yellow-300 hover:text-black hover:border-yellow-100"">+ Create new 
+      <span class="font-bold">deploy</span>
+    </a>
   </div>
-`)
+`) 
 
 const deployBoxHtml = require('./deploy-box-html')
 

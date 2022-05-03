@@ -4,6 +4,7 @@ const _s = require('underscore.string')
 const {render, html} = require('lighterhtml')
 const is = require('./is')
 const _ = require('underscore')
+const upperNavHtml = require('./upper-nav-html')
 
 let deploy, deployWebURL, deployLogURL, deployHost, testURL, isTesting, error
 let testHistory = []
@@ -24,12 +25,8 @@ $(document.head).append(/*html*/`
   </style>
 `)
 
-$(document.body).prepend(/*html*/`
-  <div class="bg-black text-white p-4">
-    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 font-bold mr-3">Deploy</a>
-    <a href="/tests" class="px-1">Test</a>
-  </div>
+render(document.body, () => html`
+  ${upperNavHtml()}
   <div id="DEPLOY" class="m-4"></div>
 `)
 

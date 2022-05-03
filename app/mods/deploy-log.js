@@ -2,6 +2,7 @@ const log = console.log
 const $ = require('jquery')
 const _s = require('underscore.string')
 const {render, html} = require('lighterhtml')
+const upperNavHtml = require('./upper-nav-html')
 
 module.exports = () => {
 // #### Coinos CD module #### 
@@ -25,10 +26,7 @@ log(deployId)
 $.post(`/deploy/${deployId}`, deploy => {
   const deployUrl = `/deploy/${deploy._id}`
   render(document.body, html`
-  <div class="bg-black text-white p-4">
-    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 font-bold">Deploy</a>
-  </div>
+  ${upperNavHtml()}
   <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
     <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>  

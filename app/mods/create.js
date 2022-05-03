@@ -3,6 +3,7 @@ const {render, html} = require('lighterhtml')
 const day= require('dayjs')
 const spinner = require('./spinner')
 const delay = require('./delay')
+const upperNavHtml = require('./upper-nav-html')
 
 let err = deployed = deploying = canceled = false
 let terminalOutput = '> deploying new coinos instance...'
@@ -24,11 +25,7 @@ $(document.head).append(/*html*/`
 )
 
 $(document.body).prepend(/*html*/`
-  <div class="bg-black text-white p-4">
-    <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-    <a href="/" class="px-1 font-bold mr-3">Deploy</a>
-    <a href="/tests" class="px-1">Test</a>
-  </div>
+  ${upperNavHtml()}
   <div class="m-4">
     <div class="text-4xl font-bold">
         coinos deploys

@@ -2,6 +2,7 @@ const $ = require('jquery')
 const _s = require('underscore.string')
 const {render, html} = require('lighterhtml')
 const is = require('./is')
+const upperNavHtml = require('./upper-nav-html')
 
 module.exports = () => {
   if(window.location.pathname.search('test') === -1) return false 
@@ -21,12 +22,8 @@ module.exports = () => {
 
   const renderPage = () => 
     render(document.body, html`
-      <div class="bg-black text-white p-4">
-        <a href="https://github.com/coinos" class="px-1 mr-3">Code</a>
-        <a href="/" class="px-1 mr-3">Deploy</a>
-        <a href="/" class="px-1 font-bold">Test</a>
-      </div>
-      <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
+      ${upperNavHtml()}
+      <a href="${deployUrl}" class="hover:text-blue-500 ml-3 my-4 block">
         <h1 class="inline-block text-4xl font-bold">
         ${is(deploy.HOST_NAME !== 'coinos.io', 
           () => html`<span class="mr-3">coinos server</span>`
