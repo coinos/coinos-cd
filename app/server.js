@@ -264,6 +264,7 @@ DROPLET_ID="${deploy.DROPLET_ID}"`
           })
         }
         terminalOutput = `${terminalOutput}\n${dataLine}`
+        dataLine = ''
       }
     }
   )
