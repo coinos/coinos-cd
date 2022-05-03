@@ -71,7 +71,7 @@ renderBody = () => render(document.body, () => html`
               ${is(test.deploy, 
               () => html`<a class="opacity-50 hover:text-blue-500" 
               href="/deploy/${test.deploy._id}">
-                ${test.deploy.SUBDOMAIN}
+                ${test.deploy.HOST_NAME === 'coinos.io' ? 'coinos.io' : test.deploy.SUBDOMAIN}
               </a>`
             )}
             </a>
@@ -91,7 +91,7 @@ renderBody = () => render(document.body, () => html`
             ${is(test.deploy, 
               () => html`<a class="opacity-50 hover:text-blue-500" 
               href="/deploy/${test.deploy._id}">
-                ${test.deploy.SUBDOMAIN}
+                ${test.deploy.HOST_NAME === 'coinos.io' ? 'coinos.io' : test.deploy.SUBDOMAIN}
               </a>`
             )}
           </div>
@@ -119,7 +119,10 @@ $.post('/tests', theTests => {
   asyncjs.concat(tests, getDeploy)
   .then( deploys => {
     subdomains = _.chain(deploys)
-    .map(deploy => deploy.SUBDOMAIN).unique().value()
+    .map(deploy => {
+      if(deploy.HOST_NAME === 'coinos.io') return 'coinos.io'
+      return deploy.SUBDOMAIN
+    }).unique().value()
     //assign each deploy to corresponding test: 
     tests.forEach( test => {
       test.deploy = _.findWhere(deploys, { _id : test.deploy_id})

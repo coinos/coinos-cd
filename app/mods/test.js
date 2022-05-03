@@ -3,6 +3,8 @@ const _s = require('underscore.string')
 const $ = require('jquery')
 const {render, html} = require('lighterhtml')
 const spinner = require('./spinner')
+const is = require('./is')
+
 
 const delay = async (seconds) =>
   await new Promise((r) => setTimeout(r, seconds ? seconds * 1000 : 1000))
@@ -22,6 +24,7 @@ log(deployId)
 
 let testing = true
 let deploy
+let deployType = 'regtest cloud'
 
 
 $(document.head).append(spinner.style)
@@ -35,8 +38,12 @@ const renderContent = () =>
 
   </div>
   <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
-    <h1 class="inline-block text-4xl font-bold mr-3">coinos server</h1>
-    <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - regtest cloud</h1>  
+    <h1 class="inline-block text-4xl font-bold">
+      ${is(deploy.HOST_NAME !== 'coinos.io', 
+        () => html`<span class="ml-3">coinos server</span>`
+      )}    
+    </h1>
+    <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - ${deployType}</h1>  
   </a>
   ${testingHtml()}
   ${testedHtml()}
@@ -92,6 +99,13 @@ const handleRes = async res => {
 $.post(`/deploy/${deployId}`, theDeploy => {
   deploy = theDeploy
   deployUrl = `/deploy/${deploy._id}`
+
+  // accommodate for coinos.io mothership deploy: 
+  if(deploy.HOST_NAME === 'coinos.io') {
+    deployType = 'LIVE PRODUCTION'
+    deploy.SUBDOMAIN = 'coinos.io'
+  }
+
   renderContent()
   $.post(`/test/update`, handleRes) 
 })

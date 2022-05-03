@@ -50,7 +50,7 @@ const renderContent = () =>
   render(document.getElementById('DEPLOY'), html`
     <h1 class="inline-block text-4xl font-bold">
       ${is(deploy.HOST_NAME !== 'coinos.io', 
-        () => html`<span class="ml-3">coinos server</span>`
+        () => html`<span class="mr-3">coinos server</span>`
       )}
     </h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - ${deployType}</h1>
@@ -62,7 +62,7 @@ const renderContent = () =>
     </a>
     <div class="grid grid-cols-3 gap-4">
       <div>
-        <h2>details</h2>
+        <h2 class="mb-4">details</h2>
         <p><span>Deployed:</span> ${deploy.date.ago}</p>
         <p><span>Branch:</span> ${deploy.BRANCH_NAME}</p>
         <p><span>Host:</span> ${deployHost}</p>
@@ -73,7 +73,7 @@ const renderContent = () =>
         )}
       </div>
       <div>
-        <h2>tests</h2>
+        <h2 class="mb-4">tests</h2>
         ${is(history.length, historyHtml, 
           () => html`<p><span>(no tests yet)</span></p>`
         )}
@@ -99,8 +99,8 @@ const renderContent = () =>
 
       </div>
       <div>
-        <h2>deployment</h2>
-        <div class="mt-4">
+        <h2 class="mb-4">deployment</h2>
+        <div>
           ${is(deploy.deploying, 
           () => html`🚧 <a class="font-bold text-orange-500"
           href="/create">DEPLOYING</a>`)}
@@ -197,8 +197,10 @@ window.addEventListener('hashchange', e => {
       if(res !== 'OK') return alert('problem')
       log(deploy.HOST_NAME)
       render(document.getElementById('DEPLOY'), html`
-        <h1 class="inline-block text-4xl font-bold mr-3">
-          ${is(deploy.HOST_NAME !== 'coinos.io', 'coinos server')}
+        <h1 class="inline-block text-4xl font-bold">
+        ${is(deploy.HOST_NAME !== 'coinos.io', 
+          () => html`<span class="mr-3">coinos server</span>`
+        )}        
         </h1>
         <h1 class="inline-block text-4xl font-light opacity-20 line-through">${deploy.SUBDOMAIN} - ${deployType}</h1>
         <p class="mt-4 p-3 bg-yellow-200">This deployment was destroyed successfully.</p>

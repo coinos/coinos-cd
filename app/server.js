@@ -317,10 +317,16 @@ exApp.get('/test/:deployId', (req, res) => {
   _p.findWhere(deploysDb, { _id : req.params.deployId },
   (err, deploy) => {
     if(err) { throw err }
+
+      let baseUrl = `https://${deploy.SUBDOMAIN}.coinos.cloud/`
+      if(deploy.HOST_NAME === 'coinos.io') {
+        baseUrl = 'https://coinos.io/'
+      }
     
       testing = true 
       testingId = deploy._id 
-      testProcess = cmd.run(`cd ../../coinos-tests; export BASE_URL=https://${deploy.SUBDOMAIN}.coinos.cloud/; npm run test-headless`,
+      let passed = true 
+      testProcess = cmd.run(`cd ../../coinos-tests; export BASE_URL=${baseUrl}; npm run test-headless`,
         async (err, data, stderr) => {
           log('### test complete! ### ')
           testing = false
@@ -330,7 +336,7 @@ exApp.get('/test/:deployId', (req, res) => {
             log('err: ' + err) 
             log('stderr:' + stderr )
             testProcess = null 
-            return
+            passed = false 
           }
           testOutput = data
           if(_.isEmpty(data)) return res.sendStatus(500)
@@ -341,12 +347,14 @@ exApp.get('/test/:deployId', (req, res) => {
           const dbPost = await testsDb.post({
             deploy_id : deploy._id, 
             result : data,
-            date : now
+            date : now, 
+            passed
           })
           log(dbPost)
           deploy.lastTest = {
             date : now,
-            test_id : dbPost.id 
+            test_id : dbPost.id,
+            passed
           }
           saveDeploy(deploy) 
         }
