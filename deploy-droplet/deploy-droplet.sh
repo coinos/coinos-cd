@@ -11,6 +11,8 @@ doctl compute droplet get $DROPLET_NAME --no-header
 
 IP_ADDRESS=`doctl compute droplet get $DROPLET_NAME --no-header --format PublicIPv4`
 
+echo "Droplet IP address:$IP_ADDRESS"
+
 ssh-keygen -R $IP_ADDRESS
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o ConnectionAttempts=60 -T"
 
