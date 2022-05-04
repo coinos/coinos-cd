@@ -27,6 +27,12 @@ if(!DIGITALOCEAN_SSH_KEYS || _.isEmpty(DIGITALOCEAN_SSH_KEYS)) throw 'missing DI
 const COINOS_CD_PASSWORD = process.env.COINOS_CD_PASSWORD
 if(!COINOS_CD_PASSWORD || _.isEmpty(COINOS_CD_PASSWORD)) throw 'missing COINOS_CD_PASSWORD env var'
 
+const version = require('./package.json').version
+const timestamp = dayjs().format('MMMM D, YYYY @ HH:mm')
+
+log(`######################################
+Coinos CD ${version} | ${timestamp}
+######################################`)
 
 const humanDate = date => dayjs(date).format('MMM D [at] HH:mm')
 
