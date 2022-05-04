@@ -2,6 +2,7 @@ const log = console.log
 const express = require('express')
 const exApp = new express() 
 const bodyParser = require('body-parser')
+const prioritySession = require('express-user-session')
 const fs = require('fs')
 const _ = require('underscore')
 const _s = require('underscore.string')
@@ -42,18 +43,7 @@ exApp.listen(8456, () =>
   log('http://localhost:8456'))
 
 
-exApp.post('/deploys', async (req, res) => {
-  _p.all(deploysDb, (err, deploys) => {
-    if(err) { log(err); return res.send(500) }
-    log(deploys)
-    deploys = _.chain(deploys).map(deploy => {
-      if(deploy._id === testingId) deploy.isTesting = true 
-      return deploy
-    }).sortBy(deploy => deploy.date.created)
-    .reverse().value()
-    res.send(deploys)
-  })
-})
+prioritySession.init(exApp)
 
 // Load index.html into cheerio...
 const indexFile = fs.readFileSync( process.cwd() + '/index.html' ) 
@@ -62,23 +52,42 @@ const $cj = cheerio.load( indexFile )
 $cj('body script').attr('src', '/client-login.bundle.js')
 const loginHtml = $cj.html()
 // and send on / root request: 
-exApp.get('/', (req, res) => res.send( loginHtml ))
+exApp.get('/', (req, res) => {
+  if(req.session && req.session.user) return res.redirect('/deploys')
+  res.send( loginHtml )
+})
 //(other routes will use the unmodified index.html )
 
 exApp.post('/coinos-cd-login', (req, res) => {
   log('login attempt')
-  //add cookie, etc 
-  if(req.body.username === 'satoshi' &&
-  req.body.password === COINOS_CD_PASSWORD) {
+  const { user, password } = req.body   
+  console.log('@ ' + humanDate(Date.now()) + '------------------------')
+
+  if(user === 'satoshi' &&
+  password === COINOS_CD_PASSWORD) {
+    prioritySession.start(req)
     res.sendStatus(200)
   } else {
+    log( `failed login attempt with username: ${user}`)
+    log( `password: ${password.substring(0, 2)}****}`)
     res.sendStatus(401)
   }
 })
 
-exApp.use('/', express.static(process.cwd()))
+exApp.get('/logout', (req, res) => {
+  console.log('logout')
+  console.log('@ ' + humanDate(Date.now()) + '------------------------\n')
+  prioritySession.destroy(req) 
+  res.redirect('/')
+})
 
-// Protected routes (todo: protect routes): 
+//Protected routes:
+const ensureLoggedIn = (req, res, next) => {
+  if(req.session && req.session.user) return next()
+  //otherwise we have to log them in...
+  res.redirect('/')
+}
+
 const pageRoutes = [
   '/deploys', 
   '/create', 
@@ -90,9 +99,25 @@ const pageRoutes = [
 ]
 //todo: protect client.bundle.js
 
+exApp.get(pageRoutes, ensureLoggedIn)
+
 exApp.get(pageRoutes, (req, res) => 
   res.sendFile(process.cwd() + '/index.html')
 )
+
+exApp.use('/', express.static(process.cwd()))
+
+exApp.post('/deploys', async (req, res) => {
+  _p.all(deploysDb, (err, deploys) => {
+    if(err) { log(err); return res.send(500) }
+    deploys = _.chain(deploys).map(deploy => {
+      if(deploy._id === testingId) deploy.isTesting = true 
+      return deploy
+    }).sortBy(deploy => deploy.date.created)
+    .reverse().value()
+    res.send(deploys)
+  })
+})
 
 exApp.post('/deploy/:deployId', (req, res) => {
   _p.findWhere(deploysDb, { _id : req.params.deployId },

@@ -18,7 +18,7 @@ module.exports = () => {
       Test
     </a>
     <span class="flex-auto"></span>
-    <a href="/" class="opacity-50 hover:opacity-100">logout</a>
+    <a href="/logout" class="opacity-50 hover:opacity-100">logout</a>
   </div>
 `
 }

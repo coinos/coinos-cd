@@ -33,7 +33,7 @@ const renderPage = () => render( document.body, () => html`
 
   <div class="mt-14 mx-4">
     <div class="${ok !== null || loggingIn ? 'opacity-50' : ''}">
-      <input id="username" class="${inputClasses}" placeholder="username" 
+      <input id="user" class="${inputClasses}" placeholder="user" 
       required disabled=${ok !== null || loggingIn ? 'true' : ''}></input>
       <br>
       <input id="password" type="password" class="${inputClasses}" 
@@ -59,7 +59,7 @@ const renderPage = () => render( document.body, () => html`
 
 const loginAttempt = () => {
   $j.post('/coinos-cd-login', {
-    username : $j('#username').val(),
+    user : $j('#user').val(),
     password: $j('#password').val() 
   }, async () => {
     ok = true 
