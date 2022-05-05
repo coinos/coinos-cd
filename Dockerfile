@@ -7,5 +7,6 @@ RUN apk add --update npm
 
 COPY . /coinos-cd
 WORKDIR /coinos-cd/app
+RUN touch .env
 
 RUN npm i

@@ -2,17 +2,37 @@ version: '3.6'
 services:
   coinos-cd-app:
     container_name: coinos-cd-app
+    image : coinos-cd-app:0.0.1
+    command : node server
+    #command : tail -f /dev/null
+    volumes:
+     - type: bind 
+       source: ./app/.env
+       target: /home/node/coinos-cd/app/.env
+  
+  nginx: 
+    depends_on:
+    - coinos-cd-app
+    image: nginx:1.20.2
+    container_name: nginx
+    volumes:
+      - type: bind 
+        source: ./app/cd.coinos.conf
+        target: /etc/nginx/conf.d/default.conf
 
   nginx-ssl-proxy: #< automatic SSL
-    depends_on:
-    - nginx
     container_name: nginx-ssl-proxy
     image: danieldent/nginx-ssl-proxy
     environment:
-      UPSTREAM: 'coinos-cd-app' #< send traffic to service above
+      UPSTREAM: 'coinos-cd-app:8456' #< send traffic to service above
       SERVERNAME: cd.coinos.io
     ports:
       - 80:80
       - 443:443
     volumes:
       - ./:/etc/letsencrypt
+
+networks: 
+  default: 
+    external: 
+      name: coinos-cd-net     
