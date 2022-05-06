@@ -4,7 +4,6 @@ services:
     container_name: coinos-cd-app
     image : coinos-cd-app:0.0.1
     command : node server
-    #command : tail -f /dev/null
     volumes:
      - type: bind 
        source: ./app/.env
@@ -22,15 +21,15 @@ services:
 
   nginx-ssl-proxy: #< automatic SSL
     container_name: nginx-ssl-proxy
-    image: danieldent/nginx-ssl-proxy
+    image: danieldent/nginx-ssl-proxy@sha256:4bc9f35296b7cb66972e0543461914c6213785757889f720ddf7c027452c6611
     environment:
-      UPSTREAM: 'coinos-cd-app:8456' #< send traffic to service above
-      SERVERNAME: cd.coinos.io
+      UPSTREAM: 'nginx:80' #< send traffic to service above
+      SERVERNAME: cd.coinos.cloud
     ports:
       - 80:80
       - 443:443
     volumes:
-      - ./:/etc/letsencrypt
+      - ./app/letsencrypt:/etc/letsencrypt
 
 networks: 
   default: 

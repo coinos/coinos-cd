@@ -7,6 +7,8 @@ RUN apk add --update npm
 
 COPY . /coinos-cd
 WORKDIR /coinos-cd/app
-RUN touch .env
 
 RUN npm i
+RUN node compile c
+RUN touch .env
+RUN mkdir letsencrypt
