@@ -29,9 +29,4 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./app/letsencrypt:/etc/letsencrypt
-
-networks: 
-  default: 
-    external: 
-      name: coinos-cd-net     
+      - ./app/letsencrypt:/etc/letsencrypt   
