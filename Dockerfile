@@ -9,6 +9,6 @@ COPY . /coinos-cd
 WORKDIR /coinos-cd/app
 
 RUN npm i
-RUN node compile c
+RUN node compile p
 RUN touch .env
 RUN mkdir letsencrypt
