@@ -24,7 +24,7 @@ $(document.head).append(/*html*/`
   ${spinner.style}`
 )
 
-$(document.body).prepend(/*html*/`
+render(document.body, html`
   ${upperNavHtml()}
   <div class="m-4">
     <div class="text-4xl font-bold">
