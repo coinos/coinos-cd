@@ -1,0 +1,1 @@
+../deploy-droplet/destroy-droplet.sh
