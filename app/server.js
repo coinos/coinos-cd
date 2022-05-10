@@ -139,6 +139,7 @@ exApp.post('/deploy/:deployId/is-online', async (req, res) => {
   try {
     getUrl = await axios.get(url)
   } catch (err) {
+    if(!err.response) return res.sendStatus(500)
     res.sendStatus(err.response.status)
   }
   if(!getUrl) return 
