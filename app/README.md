@@ -15,7 +15,18 @@ To get a Digital Ocean key see [../deploy-droplet README]
 
 (a key is only required for creating new deploys)
 
+#### deploy (WIP, only required for prod)
 
+Install docker and docker-compose on host system then: 
+
+```bash
+docker build -t coinos-cd-app:0.0.1 . --no-cache
+docker-compose up --force-recreate
+```
+Omit `--force-recreate` and `--no-cache` only if necessary.
+
+*WIP; not fully working yet
+alternate to a docker based 'auto' deploy is a vanilla ie- [non-docker based deploy script] (which is also WIP and not fully automated)
 
 #### todo
 
@@ -28,3 +39,4 @@ To get a Digital Ocean key see [../deploy-droplet README]
 
 
 [../deploy-droplet README]:../deploy-droplet
+[non-docker based deploy script]:../deploy-droplet-cd-app/deploy-droplet-cd-app_vanilla.sh
