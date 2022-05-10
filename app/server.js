@@ -67,6 +67,7 @@ exApp.post('/coinos-cd-login', (req, res) => {
   password === COINOS_CD_PASSWORD) {
     prioritySession.start(req)
     res.sendStatus(200)
+    log('login OK')
   } else {
     log( `failed login attempt with username: ${user}`)
     log( `password: ${password.substring(0, 2)}****}`)
@@ -131,8 +132,6 @@ exApp.post('/deploy/:deployId', (req, res) => {
 
 exApp.post('/deploy/:deployId/is-online', async (req, res) => {
   const deploy = await deploysDb.get(req.params.deployId)
-  log(deploy)
-
   const url = `https://${deploy.HOST_NAME}`
 
   let getUrl
