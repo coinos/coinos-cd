@@ -35,7 +35,7 @@ const renderContent = () =>
   <a href="${deployUrl}" class="hover:text-blue-500 m-4 block">
     <h1 class="inline-block text-4xl font-bold">
       ${is(deploy.HOST_NAME !== 'coinos.io', 
-        () => html`<span class="ml-3">coinos server</span>`
+        () => html`<span class="">coinos server</span>`
       )}    
     </h1>
     <h1 class="inline-block text-4xl font-light">${deploy.SUBDOMAIN} - ${deployType}</h1>  
