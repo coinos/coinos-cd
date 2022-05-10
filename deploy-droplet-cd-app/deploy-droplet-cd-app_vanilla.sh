@@ -127,6 +127,11 @@ node compile p
 pm2 start --name=coinos-cd-app server.js
 pm2 save
 
+cd ../../
+git clone git@github.com:coinos/coinos-tests.git
+cd coinos-tests
+npm install
+
 cd ~/
 wget https://github.com/digitalocean/doctl/releases/download/v1.72.0/doctl-1.72.0-linux-amd64.tar.gz
 tar xf ~/doctl-1.72.0-linux-amd64.tar.gz 
@@ -137,6 +142,7 @@ EOF
 
 #use root to do some commands only root can do; 
 #set pm2 to start on boot, move doct, ufw update for nginx, certbot install
+#Puppeteer deps 
 echo "##################################################"
 echo "#### final root setup ####"
 echo "##################################################"
@@ -150,6 +156,14 @@ rm /etc/nginx/sites-enabled/default
 service nginx restart
 apt install certbot python3-certbot-nginx -y
 certbot --nginx -d cd.coinos.cloud
+apt-get install -y --no-install-recommends wget gnupg ca-certificates curl iputils-ping libxshmfence-dev \
+&& wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+&& sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+&& apt-get update \
+&& apt-get install -y --no-install-recommends google-chrome-stable \
+&& rm -rf /var/lib/apt/lists/* \
+&& wget --quiet https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O /usr/sbin/wait-for-it.sh \
+&& chmod +x /usr/sbin/wait-for-it.sh 
 EOF
 
 
