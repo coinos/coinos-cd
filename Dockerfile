@@ -11,4 +11,3 @@ WORKDIR /coinos-cd/app
 RUN npm i
 RUN node compile p
 RUN touch .env
-RUN mkdir letsencrypt
