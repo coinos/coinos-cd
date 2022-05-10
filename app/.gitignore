@@ -3,3 +3,4 @@ client.bundle.js
 client-login.bundle.js
 db/*
 !db/.gitkeep
+app.log
