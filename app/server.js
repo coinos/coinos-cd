@@ -558,3 +558,12 @@ exApp.post('/delete-deploy-doc/:deployId', async (req, res) => {
     res.sendStatus(200)
   } catch(err) { res.sendStatus(500)}
 })
+
+
+deploysDb.get('coinosio', async (err, doc) => {
+  if(!err) return //< already exists 
+  log('creating a deploy doc for coinos.io')
+  const coinosDeploy = require('./db/coinosio.js')
+  const res = await deploysDb.post(coinosDeploy)
+  log(res)
+})
