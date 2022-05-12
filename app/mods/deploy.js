@@ -32,7 +32,12 @@ render(document.body, () => html`
 
 const errHtml = () => {
   if(!error) return 
-  return html`<div class="mt-6 bg-red-200 p-3">There was an error.</div>`
+  return html`<div class="mt-6 bg-red-200 p-3 max-w-2xl">
+    <p class="mb-3">There was a serverside error.</p>
+    <div class="p-6 bg-white bg-opacity-50 font-mono">
+      ${is(_.isString(error), () => html`${error}`)}
+    </div>
+  </div>`
 }
 
 const historyHtml = () => html`
@@ -211,7 +216,8 @@ window.addEventListener('hashchange', e => {
       `)
     }).catch(res => {
       log(res)
-      error = true
+      error = true //if more info supplied, make the err said info: 
+      if(res.responseText) error = res.responseText
       renderContent()
     })
   }

@@ -161,12 +161,14 @@ exApp.post('/deploy/:deployId/delete-doc', async (req, res) => {
 
 exApp.post('/deploy/:deployId/destroy', async (req, res) => {
 
-  cmd.run('cd ../deploy-droplet; ./destroy-droplet.sh',  
+  const deploy = await deploysDb.get(req.params.deployId)
+
+  cmd.run(`doctl compute droplet delete -f ${deploy.DROPLET_ID}`,  
   async (err, data, stderr) => {
     if(err) {
       log('err: ' + err) 
       log('stderr:' + stderr )
-      return res.sendStatus(500)
+      return res.status(500).send(err.toString())
     }
     if(_.isEmpty(data)) return res.sendStatus(500)
     log(data)
