@@ -147,6 +147,18 @@ exApp.post('/deploy/:deployId/is-online', async (req, res) => {
   return res.sendStatus(200)
 })
 
+exApp.post('/deploy/:deployId/delete-doc', async (req, res) => {
+  try {
+    const deploy = await deploysDb.get(req.params.deployId)
+    const removed = await deploysDb.remove(deploy)
+    log(removed)
+    res.sendStatus(200)
+  } catch (e) {
+    log(e) 
+    res.sendStatus(500)
+  }
+})
+
 exApp.post('/deploy/:deployId/destroy', async (req, res) => {
 
   cmd.run('cd ../deploy-droplet; ./destroy-droplet.sh',  
