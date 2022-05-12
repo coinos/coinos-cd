@@ -26,9 +26,8 @@ then:
 
 and copy the `FingerPrint` of the key that corresponds to your current machine.  
 
-Paste it into the `SSH_KEYS` value in `deploy-droplet.sh` 
-
-then copy `.env.sample` to `.env`
+Paste it into the `SSH_KEYS` value in your `.env`  
+(after duplicating the file `.env.sample` to `.env`)
 
 #### to deploy a Droplet
 
@@ -51,8 +50,6 @@ IP_ADDRESS=""
 ```
 
 (DROPLET_ID and IP_ADDRESS should be entered manually after Droplet creation if you will either destroy it or create a subdomain for it)
-
-Then make sure you have your machine's public key added to the file `pub-ssh-key` in this repo.  
 
 Finally, to create the new Droplet, run `deploy-droplet.sh`
 
