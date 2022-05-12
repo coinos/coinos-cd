@@ -15,6 +15,8 @@ To get a Digital Ocean key see [../deploy-droplet README]
 
 (a key is only required for creating new deploys)
 
+Login with username `satoshi` and the `COINOS_CD_PASSWORD` you set in the `.env` file (default: `stuff`)
+
 #### deploy (WIP, only required for prod)
 
 Install docker and docker-compose on host system then: 

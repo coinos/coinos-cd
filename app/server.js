@@ -178,7 +178,7 @@ exApp.post('/deploy/:deployId/destroy', async (req, res) => {
       const deploy = await deploysDb.get(req.params.deployId)
       const removed = await deploysDb.remove(deploy)
       log(removed)
-      //remove all the tests in the DB for this one 
+      //todo: remove all the tests in the DB for this one 
     } catch (e) {
       log(e) 
     }
